@@ -14,9 +14,18 @@ let history = [];
 let historyIndex = -1;
 let isDragging = false;
 let isResizing = false;
+let isRotating = false;
 let dragOffsetX = 0, dragOffsetY = 0;
 let resizeHandle = '';
 let elementIdCounter = 0;
+let startAngle = 0;
+let initialRotation = 0;
+let initialFontSize = 0;
+let initialWidth = 0;
+let initialHeight = 0;
+let startX = 0;
+let cropStartX = 0, cropStartY = 0, currentCropX = 0, currentCropY = 0, isCropping = false;
+let startY = 0;
 
 // ==================== INIT ====================
 window.addEventListener('DOMContentLoaded', () => {
@@ -155,6 +164,7 @@ function loadImageElement(event) {
         width: w,
         height: h,
         radius: 0,
+        filters: { brightness: 100, contrast: 100, hue: 0, saturation: 100, blur: 0 },
         zIndex: elements.length
       };
       
@@ -171,6 +181,126 @@ function loadImageElement(event) {
   };
   reader.readAsDataURL(file);
   event.target.value = '';
+}
+
+// ==================== CROPPING ====================
+function openCropModal() {
+  if (!selectedElement || selectedElement.type !== 'image') return;
+  const modal = document.getElementById('cropModal');
+  modal.style.display = 'flex';
+  
+  const cropCanvas = document.getElementById('cropCanvas');
+  const cropCtx = cropCanvas.getContext('2d');
+  
+  const img = selectedElement.image;
+  const maxW = window.innerWidth * 0.8;
+  const maxH = window.innerHeight * 0.7;
+  let w = img.naturalWidth || img.width;
+  let h = img.naturalHeight || img.height;
+  
+  if (w > maxW || h > maxH) {
+    const scale = Math.min(maxW/w, maxH/h);
+    w *= scale;
+    h *= scale;
+  }
+  
+  cropCanvas.width = w;
+  cropCanvas.height = h;
+  cropCanvas.dataset.scale = w / (img.naturalWidth || img.width);
+  
+  cropCtx.drawImage(img, 0, 0, w, h);
+  
+  cropStartX = 0; cropStartY = 0; currentCropX = w; currentCropY = h;
+  drawCropOverlay();
+}
+
+function closeCropModal() {
+  document.getElementById('cropModal').style.display = 'none';
+}
+
+function drawCropOverlay() {
+  const cropCanvas = document.getElementById('cropCanvas');
+  const cropCtx = cropCanvas.getContext('2d');
+  const img = selectedElement.image;
+  const w = cropCanvas.width;
+  const h = cropCanvas.height;
+  
+  cropCtx.clearRect(0, 0, w, h);
+  cropCtx.drawImage(img, 0, 0, w, h);
+  
+  const x = Math.min(cropStartX, currentCropX);
+  const y = Math.min(cropStartY, currentCropY);
+  const cw = Math.abs(currentCropX - cropStartX);
+  const ch = Math.abs(currentCropY - cropStartY);
+  
+  cropCtx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+  cropCtx.fillRect(0, 0, w, h);
+  
+  cropCtx.clearRect(x, y, cw, ch);
+  cropCtx.drawImage(img, x / (w/(img.naturalWidth||img.width)), y / (h/(img.naturalHeight||img.height)), cw / (w/(img.naturalWidth||img.width)), ch / (h/(img.naturalHeight||img.height)), x, y, cw, ch);
+  
+  cropCtx.strokeStyle = '#fff';
+  cropCtx.lineWidth = 2;
+  cropCtx.strokeRect(x, y, cw, ch);
+}
+
+function onCropMouseDown(e) {
+  const rect = document.getElementById('cropCanvas').getBoundingClientRect();
+  cropStartX = e.clientX - rect.left;
+  cropStartY = e.clientY - rect.top;
+  currentCropX = cropStartX;
+  currentCropY = cropStartY;
+  isCropping = true;
+}
+
+function onCropMouseMove(e) {
+  if (!isCropping) return;
+  const rect = document.getElementById('cropCanvas').getBoundingClientRect();
+  currentCropX = e.clientX - rect.left;
+  currentCropY = e.clientY - rect.top;
+  drawCropOverlay();
+}
+
+function onCropMouseUp() {
+  isCropping = false;
+}
+
+function applyCrop() {
+  if (!selectedElement || selectedElement.type !== 'image') return;
+  
+  const scale = parseFloat(document.getElementById('cropCanvas').dataset.scale);
+  const x = Math.min(cropStartX, currentCropX) / scale;
+  const y = Math.min(cropStartY, currentCropY) / scale;
+  const cw = Math.abs(currentCropX - cropStartX) / scale;
+  const ch = Math.abs(currentCropY - cropStartY) / scale;
+  
+  if (cw <= 10 || ch <= 10) {
+    closeCropModal();
+    return;
+  }
+  
+  const offCanvas = document.createElement('canvas');
+  offCanvas.width = cw;
+  offCanvas.height = ch;
+  const offCtx = offCanvas.getContext('2d');
+  
+  offCtx.drawImage(selectedElement.image, x, y, cw, ch, 0, 0, cw, ch);
+  
+  const dataUrl = offCanvas.toDataURL('image/png');
+  selectedElement.imageSrc = dataUrl;
+  
+  const newImg = new Image();
+  newImg.onload = () => {
+    selectedElement.image = newImg;
+    selectedElement.width = cw;
+    selectedElement.height = ch;
+    saveHistory();
+    render();
+    updatePropertiesPanel();
+  };
+  newImg.src = dataUrl;
+  
+  closeCropModal();
 }
 
 // ==================== SELECTION ====================
@@ -312,6 +442,13 @@ function updatePropertiesPanel() {
     document.getElementById('imgOpacity').value = el.opacity;
     document.getElementById('imgRadius').value = el.radius || 0;
     document.getElementById('imgLockRatio').checked = el.lockRatio;
+    if (el.filters) {
+      document.getElementById('imgBrightness').value = el.filters.brightness;
+      document.getElementById('imgContrast').value = el.filters.contrast;
+      document.getElementById('imgSaturation').value = el.filters.saturation;
+      document.getElementById('imgHue').value = el.filters.hue;
+      document.getElementById('imgBlur').value = el.filters.blur;
+    }
   }
   
   updateLayersList();
@@ -377,6 +514,13 @@ function updateSelectedImage() {
   el.rotation = parseInt(document.getElementById('imgRotation').value);
   el.opacity = parseFloat(document.getElementById('imgOpacity').value);
   el.radius = parseInt(document.getElementById('imgRadius').value);
+  
+  if (!el.filters) el.filters = { brightness: 100, contrast: 100, hue: 0, saturation: 100, blur: 0 };
+  el.filters.brightness = parseInt(document.getElementById('imgBrightness').value);
+  el.filters.contrast = parseInt(document.getElementById('imgContrast').value);
+  el.filters.saturation = parseInt(document.getElementById('imgSaturation').value);
+  el.filters.hue = parseInt(document.getElementById('imgHue').value);
+  el.filters.blur = parseInt(document.getElementById('imgBlur').value);
   
   render();
 }
@@ -824,7 +968,11 @@ function drawImageElement(el) {
   }
   
   if (el.image) {
+    if (el.filters) {
+      ctx.filter = `brightness(${el.filters.brightness}%) contrast(${el.filters.contrast}%) saturate(${el.filters.saturation}%) hue-rotate(${el.filters.hue}deg) blur(${el.filters.blur}px)`;
+    }
     ctx.drawImage(el.image, el.x, el.y, el.width, el.height);
+    ctx.filter = 'none';
   }
   
   ctx.restore();
@@ -832,7 +980,7 @@ function drawImageElement(el) {
 
 function drawSelectionHandles(el) {
   ctx.save();
-  ctx.strokeStyle = '#e94560';
+  ctx.strokeStyle = '#ff477e';
   ctx.lineWidth = 2;
   
   let x = el.x, y = el.y, w = el.width, h = el.height;
@@ -853,7 +1001,7 @@ function drawSelectionHandles(el) {
   ];
   
   handles.forEach(([hx, hy]) => {
-    ctx.fillStyle = '#e94560';
+    ctx.fillStyle = '#ff477e';
     ctx.beginPath();
     ctx.arc(hx, hy, 5, 0, Math.PI * 2);
     ctx.fill();
@@ -861,6 +1009,22 @@ function drawSelectionHandles(el) {
     ctx.lineWidth = 2;
     ctx.stroke();
   });
+  
+  // Rotation handle
+  const rotX = x + w/2;
+  const rotY = y - 30;
+  ctx.beginPath();
+  ctx.moveTo(rotX, y);
+  ctx.lineTo(rotX, rotY);
+  ctx.strokeStyle = '#ff477e';
+  ctx.stroke();
+  
+  ctx.fillStyle = '#ff477e';
+  ctx.beginPath();
+  ctx.arc(rotX, rotY, 6, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'white';
+  ctx.stroke();
   
   ctx.restore();
 }
@@ -915,27 +1079,54 @@ function getCanvasCoords(e) {
   };
 }
 
+function rotatePoint(px, py, cx, cy, angleDeg) {
+  const angleRad = angleDeg * Math.PI / 180;
+  const cos = Math.cos(angleRad);
+  const sin = Math.sin(angleRad);
+  const dx = px - cx;
+  const dy = py - cy;
+  return {
+    x: cx + dx * cos - dy * sin,
+    y: cy + dx * sin + dy * cos
+  };
+}
+
+function hitTestHandles(mx, my, el) {
+  if (!el || !el.selected) return null;
+  
+  const cx = el.x + el.width/2;
+  const cy = el.y + el.height/2;
+  const pt = rotatePoint(mx, my, cx, cy, -el.rotation);
+  
+  const x = el.x, y = el.y, w = el.width, h = el.height;
+  const handleSize = 8;
+  
+  const rotX = x + w/2;
+  const rotY = y - 30;
+  if (Math.abs(pt.x - rotX) <= handleSize && Math.abs(pt.y - rotY) <= handleSize) return 'rotate';
+  
+  if (Math.abs(pt.x - x) <= handleSize && Math.abs(pt.y - y) <= handleSize) return 'tl';
+  if (Math.abs(pt.x - (x+w)) <= handleSize && Math.abs(pt.y - y) <= handleSize) return 'tr';
+  if (Math.abs(pt.x - x) <= handleSize && Math.abs(pt.y - (y+h)) <= handleSize) return 'bl';
+  if (Math.abs(pt.x - (x+w)) <= handleSize && Math.abs(pt.y - (y+h)) <= handleSize) return 'br';
+  
+  return null;
+}
+
 function hitTest(mx, my) {
-  // Check from top (last) to bottom
   for (let i = elements.length - 1; i >= 0; i--) {
     const el = elements[i];
     if (el.visible === false) continue;
     
-    if (el.type === 'text') {
-      const lines = getLines(el);
-      const lineHeight = el.fontSize * el.lineHeight;
-      const totalH = lines.length * lineHeight;
-      const padding = 10;
-      
-      if (mx >= el.x - padding && mx <= el.x + el.width + padding &&
-          my >= el.y - padding && my <= el.y + totalH + padding) {
-        return el;
-      }
-    } else if (el.type === 'image') {
-      if (mx >= el.x && mx <= el.x + el.width &&
-          my >= el.y && my <= el.y + el.height) {
-        return el;
-      }
+    const cx = el.x + el.width/2;
+    const cy = el.y + el.height/2;
+    const pt = rotatePoint(mx, my, cx, cy, -el.rotation);
+    
+    const padding = el.type === 'text' ? 10 : 0;
+    
+    if (pt.x >= el.x - padding && pt.x <= el.x + el.width + padding &&
+        pt.y >= el.y - padding && pt.y <= el.y + el.height + padding) {
+      return el;
     }
   }
   return null;
@@ -943,6 +1134,28 @@ function hitTest(mx, my) {
 
 function onMouseDown(e) {
   const {x, y} = getCanvasCoords(e);
+  
+  if (selectedElement) {
+    const handle = hitTestHandles(x, y, selectedElement);
+    if (handle) {
+      if (handle === 'rotate') {
+        isRotating = true;
+        const cx = selectedElement.x + selectedElement.width/2;
+        const cy = selectedElement.y + selectedElement.height/2;
+        startAngle = Math.atan2(y - cy, x - cx) * 180 / Math.PI;
+        initialRotation = selectedElement.rotation;
+      } else {
+        isResizing = true;
+        resizeHandle = handle;
+        initialFontSize = selectedElement.fontSize;
+        initialWidth = selectedElement.width;
+        initialHeight = selectedElement.height;
+        startX = x;
+        startY = y;
+      }
+      return;
+    }
+  }
   
   const hit = hitTest(x, y);
   
@@ -957,22 +1170,64 @@ function onMouseDown(e) {
 }
 
 function onMouseMove(e) {
-  if (!isDragging || !selectedElement) return;
+  if (!isDragging && !isResizing && !isRotating) return;
+  if (!selectedElement) return;
   e.preventDefault();
   
   const {x, y} = getCanvasCoords(e);
-  selectedElement.x = x - dragOffsetX;
-  selectedElement.y = y - dragOffsetY;
   
-  updatePropertiesPanel();
-  render();
+  if (isRotating) {
+    const cx = selectedElement.x + selectedElement.width/2;
+    const cy = selectedElement.y + selectedElement.height/2;
+    const currentAngle = Math.atan2(y - cy, x - cx) * 180 / Math.PI;
+    let newRotation = initialRotation + (currentAngle - startAngle);
+    selectedElement.rotation = Math.round(newRotation);
+    updatePropertiesPanel();
+    render();
+    return;
+  }
+  
+  if (isResizing) {
+    const cx = selectedElement.x + selectedElement.width/2;
+    const cy = selectedElement.y + selectedElement.height/2;
+    const startDist = Math.hypot(startX - cx, startY - cy);
+    const currentDist = Math.hypot(x - cx, y - cy);
+    const scale = currentDist / startDist;
+    
+    if (selectedElement.type === 'text') {
+      let newSize = Math.round(initialFontSize * scale);
+      selectedElement.fontSize = Math.max(8, Math.min(300, newSize));
+      measureText(selectedElement);
+      selectedElement.x = cx - selectedElement.width/2;
+      selectedElement.y = cy - selectedElement.height/2;
+    } else if (selectedElement.type === 'image') {
+      let newW = Math.round(initialWidth * scale);
+      let newH = Math.round(initialHeight * scale);
+      selectedElement.width = Math.max(10, newW);
+      selectedElement.height = Math.max(10, newH);
+      selectedElement.x = cx - selectedElement.width/2;
+      selectedElement.y = cy - selectedElement.height/2;
+    }
+    updatePropertiesPanel();
+    render();
+    return;
+  }
+  
+  if (isDragging) {
+    selectedElement.x = x - dragOffsetX;
+    selectedElement.y = y - dragOffsetY;
+    updatePropertiesPanel();
+    render();
+  }
 }
 
 function onMouseUp(e) {
-  if (isDragging && selectedElement) {
+  if ((isDragging || isResizing || isRotating) && selectedElement) {
     saveHistory();
   }
   isDragging = false;
+  isResizing = false;
+  isRotating = false;
 }
 
 function onTouchStart(e) {
@@ -1032,6 +1287,13 @@ function setGradDir(dir, btn) {
   document.querySelectorAll('.dir-btn').forEach(b => b.classList.remove('active'));
   if (btn) btn.classList.add('active');
   render();
+}
+
+function setGradientTemplate(c1, c2, c3, dir) {
+  document.getElementById('gradColor1').value = c1;
+  document.getElementById('gradColor2').value = c2;
+  document.getElementById('gradColor3').value = c3;
+  setGradDir(dir);
 }
 
 function loadBgImage(event) {
@@ -1604,7 +1866,11 @@ function drawImageOnCtx(c, el) {
   }
   
   if (el.image) {
+    if (el.filters) {
+      c.filter = `brightness(${el.filters.brightness}%) contrast(${el.filters.contrast}%) saturate(${el.filters.saturation}%) hue-rotate(${el.filters.hue}deg) blur(${el.filters.blur}px)`;
+    }
     c.drawImage(el.image, el.x, el.y, el.width, el.height);
+    c.filter = 'none';
   }
 }
 

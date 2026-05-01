@@ -95,19 +95,27 @@
             <div class="size-preset-name">YouTube</div>
             <div class="size-preset-dims">1280 × 720</div>
           </div>
-          <div class="size-preset" onclick="setSize(1920,1080,'Video Thumbnail',this)">
+          <div class="size-preset" onclick="setSize(1920,1080,'Video HD',this)">
             <div class="size-preset-name">Video HD</div>
             <div class="size-preset-dims">1920 × 1080</div>
           </div>
-          <div class="size-preset" onclick="setSize(1080,1920,'TikTok',this)">
-            <div class="size-preset-name">TikTok</div>
+          <div class="size-preset" onclick="setSize(1080,1920,'TikTok/Story',this)">
+            <div class="size-preset-name">TikTok/Story</div>
             <div class="size-preset-dims">1080 × 1920</div>
           </div>
-          <div class="size-preset" onclick="setSize(1080,1080,'Instagram',this)">
-            <div class="size-preset-name">Instagram</div>
+          <div class="size-preset" onclick="setSize(1080,1920,'WhatsApp Status',this)">
+            <div class="size-preset-name">WhatsApp</div>
+            <div class="size-preset-dims">1080 × 1920</div>
+          </div>
+          <div class="size-preset" onclick="setSize(1080,1080,'Instagram Post',this)">
+            <div class="size-preset-name">Insta Post</div>
             <div class="size-preset-dims">1080 × 1080</div>
           </div>
-          <div class="size-preset" onclick="setSize(1500,500,'Twitter',this)">
+          <div class="size-preset" onclick="setSize(1200,630,'Facebook Post',this)">
+            <div class="size-preset-name">Facebook</div>
+            <div class="size-preset-dims">1200 × 630</div>
+          </div>
+          <div class="size-preset" onclick="setSize(1500,500,'Twitter/X',this)">
             <div class="size-preset-name">Twitter/X</div>
             <div class="size-preset-dims">1500 × 500</div>
           </div>
@@ -195,6 +203,18 @@
             <button class="dir-btn" onclick="setGradDir('45deg',this)">45°</button>
             <button class="dir-btn" onclick="setGradDir('135deg',this)">135°</button>
             <button class="dir-btn" onclick="setGradDir('radial',this)">◎</button>
+          </div>
+          
+          <label class="form-label" style="margin-top: 10px;">Gradient Templates</label>
+          <div class="color-presets" style="display:flex; gap:4px; flex-wrap:wrap; margin-top:6px;">
+            <div class="color-preset" style="background:linear-gradient(to right, #ff477e, #7209b7); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#ff477e', '#b12a99', '#7209b7', 'to right')"></div>
+            <div class="color-preset" style="background:linear-gradient(to right, #f6d365, #fda085); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#f6d365', '#fbba75', '#fda085', 'to right')"></div>
+            <div class="color-preset" style="background:linear-gradient(to right, #84fab0, #8fd3f4); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#84fab0', '#8aced2', '#8fd3f4', 'to right')"></div>
+            <div class="color-preset" style="background:linear-gradient(to bottom right, #f093fb, #f5576c); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#f093fb', '#f275b3', '#f5576c', 'to bottom right')"></div>
+            <div class="color-preset" style="background:linear-gradient(to right, #4facfe, #00f2fe); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#4facfe', '#27cffe', '#00f2fe', 'to right')"></div>
+            <div class="color-preset" style="background:linear-gradient(45deg, #fa709a, #fee140); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#fa709a', '#fca86d', '#fee140', '45deg')"></div>
+            <div class="color-preset" style="background:linear-gradient(to right, #43e97b, #38f9d7); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#43e97b', '#3df0a9', '#38f9d7', 'to right')"></div>
+            <div class="color-preset" style="background:linear-gradient(135deg, #09203f, #537895); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#09203f', '#2e4c6a', '#537895', '135deg')"></div>
           </div>
         </div>
 
@@ -536,6 +556,33 @@
           <label class="form-label">Border Radius</label>
           <input type="range" id="imgRadius" min="0" max="200" value="0" oninput="updateSelectedImage()" />
         </div>
+        <div class="form-group" style="margin-top: 10px;">
+          <button class="btn btn-primary" onclick="openCropModal()" style="width:100%; justify-content:center;">✂️ Crop Image</button>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">Filters</label>
+          <div style="margin-bottom: 6px;">
+            <label class="form-label" style="text-transform:none;font-weight:400;font-size:10px;margin-bottom:2px;">Brightness</label>
+            <input type="range" id="imgBrightness" min="0" max="200" value="100" oninput="updateSelectedImage()" />
+          </div>
+          <div style="margin-bottom: 6px;">
+            <label class="form-label" style="text-transform:none;font-weight:400;font-size:10px;margin-bottom:2px;">Contrast</label>
+            <input type="range" id="imgContrast" min="0" max="200" value="100" oninput="updateSelectedImage()" />
+          </div>
+          <div style="margin-bottom: 6px;">
+            <label class="form-label" style="text-transform:none;font-weight:400;font-size:10px;margin-bottom:2px;">Saturation</label>
+            <input type="range" id="imgSaturation" min="0" max="200" value="100" oninput="updateSelectedImage()" />
+          </div>
+          <div style="margin-bottom: 6px;">
+            <label class="form-label" style="text-transform:none;font-weight:400;font-size:10px;margin-bottom:2px;">Hue</label>
+            <input type="range" id="imgHue" min="-180" max="180" value="0" oninput="updateSelectedImage()" />
+          </div>
+          <div style="margin-bottom: 6px;">
+            <label class="form-label" style="text-transform:none;font-weight:400;font-size:10px;margin-bottom:2px;">Blur</label>
+            <input type="range" id="imgBlur" min="0" max="20" value="0" oninput="updateSelectedImage()" />
+          </div>
+        </div>
       </div>
     </div>
 
@@ -650,6 +697,24 @@
     
     <div class="modal-actions">
       <button class="btn btn-secondary" onclick="closeCoverBannerModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Crop Modal -->
+<div class="modal-overlay" id="cropModal" style="display:none; z-index: 1000;">
+  <div class="modal" style="width: auto; max-width: 90vw; background: var(--glass-bg); backdrop-filter: blur(16px);">
+    <div class="modal-header">
+      <h3 class="modal-title">✂️ Crop Image</h3>
+      <button class="modal-close" onclick="closeCropModal()">×</button>
+    </div>
+    <div class="modal-body" style="text-align: center; overflow: auto; max-height: 70vh;">
+      <p style="color: var(--text-secondary); margin-bottom: 10px;">Drag on the image to draw a crop box.</p>
+      <canvas id="cropCanvas" style="cursor: crosshair; background: #000; box-shadow: var(--shadow);" onmousedown="onCropMouseDown(event)" onmousemove="onCropMouseMove(event)" onmouseup="onCropMouseUp()" onmouseleave="onCropMouseUp()"></canvas>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeCropModal()">Cancel</button>
+      <button class="btn btn-primary" onclick="applyCrop()">Apply Crop</button>
     </div>
   </div>
 </div>

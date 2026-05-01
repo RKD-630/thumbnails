@@ -1,0 +1,659 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>🎨 Thumbnail Maker Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Bangers&amp;family=Bebas+Neue&amp;family=Black+Ops+One&amp;family=Bowlby+One+SC&amp;family=Bungee&amp;family=Changa+One&amp;family=Comfortaa:wght@700&amp;family=Concert+One&amp;family=Courier+Prime:wght@700&amp;family=Croissant+One&amp;family=Dela+Gothic+One&amp;family=Dosis:wght@800&amp;family=Exo+2:wght@900&amp;family=Fredoka+One&amp;family=Fugaz+One&amp;family=Inter:wght@400;700;900&amp;family=Josefin+Sans:wght@700&amp;family=Kanit:wght@400;700;900&amp;family=Lobster&amp;family=Montserrat:wght@400;700;900&amp;family=Noto+Sans:wght@400;700;900&amp;family=Open+Sans:wght@400;700&amp;family=Oswald:wght@400;700&amp;family=Pacifico&amp;family=Permanent+Marker&amp;family=Playfair+Display:wght@700;900&amp;family=Poppins:wght@400;600;700;900&amp;family=Press+Start+2P&amp;family=Prompt:wght@400;700;900&amp;family=Rajdhani:wght@700&amp;family=Raleway:wght@400;700;900&amp;family=Roboto:wght@400;700;900&amp;family=Roboto+Condensed:wght@700&amp;family=Russo+One&amp;family=Sigmar+One&amp;family=Slabo+27px&amp;family=Sora:wght@400;700;800&amp;family=Space+Grotesk:wght@700&amp;family=Teko:wght@700&amp;family=Titillium+Web:wght@700;900&amp;family=Ubuntu:wght@700&amp;family=Vollkorn:wght@700;900&amp;family=Yantramanav:wght@700;900&amp;display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="style.css" /></head>
+<body>
+
+<!-- Export Progress Bar -->
+<div class="export-progress" id="exportProgress">
+  <div class="export-progress-bar" id="exportProgressBar"></div>
+</div>
+
+<!-- Header -->
+<header class="app-header">
+  <div class="logo">
+    <div class="logo-icon">🎨</div>
+    Thumbnail<span>Maker</span> Pro
+  </div>
+  <div class="header-actions">
+    <button class="btn btn-secondary" onclick="clearCanvas()" title="Clear All">🗑️ Clear</button>
+    <button class="btn btn-secondary" onclick="undoAction()" title="Undo">↩️ Undo</button>
+    <button class="btn btn-secondary" onclick="redoAction()" title="Redo">↪️ Redo</button>
+    <!-- NEW: Cover/Banner Button -->
+    <button class="btn btn-secondary" onclick="openCoverBannerModal()" title="Cover &amp; Banner Sizes">📏 Cover / Banner</button>
+    <button class="btn btn-success" onclick="exportHD()" title="Save HD Quality">💾 Save HD</button>
+    <button class="btn btn-primary" onclick="exportStandard()" title="Save Standard">📥 Save</button>
+  </div>
+</header>
+
+<!-- Main Layout -->
+<div class="app-layout">
+  
+  <!-- Left Toolbar -->
+  <div class="toolbar">
+    <button class="tool-btn active" onclick="setTool('select')" id="tool-select">
+      ➤<span class="tooltip">Select / Move</span>
+    </button>
+    <button class="tool-btn" onclick="setTool('text')" id="tool-text">
+      T<span class="tooltip">Add Text</span>
+    </button>
+    <button class="tool-btn" onclick="setTool('image')" id="tool-image">
+      🖼️<span class="tooltip">Add Image</span>
+    </button>
+    <div class="tool-divider"></div>
+    <button class="tool-btn" onclick="bringForward()">
+      ⬆️<span class="tooltip">Bring Forward</span>
+    </button>
+    <button class="tool-btn" onclick="sendBackward()">
+      ⬇️<span class="tooltip">Send Backward</span>
+    </button>
+    <div class="tool-divider"></div>
+    <button class="tool-btn" onclick="duplicateSelected()">
+      📋<span class="tooltip">Duplicate</span>
+    </button>
+    <button class="tool-btn" onclick="deleteSelected()">
+      🗑️<span class="tooltip">Delete Selected</span>
+    </button>
+    <div class="tool-divider"></div>
+    <button class="tool-btn" onclick="zoomIn()">
+      🔍<span class="tooltip">Zoom In</span>
+    </button>
+    <button class="tool-btn" onclick="zoomOut()">
+      🔎<span class="tooltip">Zoom Out</span>
+    </button>
+    <button class="tool-btn" onclick="zoomReset()">
+      ⬜<span class="tooltip">Fit to View</span>
+    </button>
+    <div class="tool-divider"></div>
+    <button class="tool-btn" onclick="toggleGrid()">
+      🔲<span class="tooltip">Toggle Grid</span>
+    </button>
+  </div>
+
+  <!-- Canvas Area -->
+  <div class="canvas-area" id="canvasArea">
+    <div class="canvas-wrapper" id="canvasWrapper">
+      <canvas id="mainCanvas" width="1280" height="720"></canvas>
+    </div>
+  </div>
+
+  <!-- Right Properties Panel -->
+  <div class="properties-panel" id="propertiesPanel">
+    
+    <!-- Size Settings -->
+    <div class="panel-section" id="sizeSection">
+      <div class="panel-header" onclick="togglePanel('sizeSection')">
+        <span class="panel-title">📐 Canvas Size</span>
+        <span class="panel-toggle">▼</span>
+      </div>
+      <div class="panel-content">
+        <div class="size-presets" style="grid-template-columns: repeat(2, 1fr);">
+          <div class="size-preset active" onclick="setSize(1280,720,'YouTube Thumbnail',this)">
+            <div class="size-preset-name">YouTube</div>
+            <div class="size-preset-dims">1280 × 720</div>
+          </div>
+          <div class="size-preset" onclick="setSize(1920,1080,'Video Thumbnail',this)">
+            <div class="size-preset-name">Video HD</div>
+            <div class="size-preset-dims">1920 × 1080</div>
+          </div>
+          <div class="size-preset" onclick="setSize(1080,1920,'TikTok',this)">
+            <div class="size-preset-name">TikTok</div>
+            <div class="size-preset-dims">1080 × 1920</div>
+          </div>
+          <div class="size-preset" onclick="setSize(1080,1080,'Instagram',this)">
+            <div class="size-preset-name">Instagram</div>
+            <div class="size-preset-dims">1080 × 1080</div>
+          </div>
+          <div class="size-preset" onclick="setSize(1500,500,'Twitter',this)">
+            <div class="size-preset-name">Twitter/X</div>
+            <div class="size-preset-dims">1500 × 500</div>
+          </div>
+          <div class="size-preset" onclick="setSize(640,360,'Low Res',this)">
+            <div class="size-preset-name">Low Res</div>
+            <div class="size-preset-dims">640 × 360</div>
+          </div>
+        </div>
+        <div class="form-row" style="margin-bottom:8px;">
+          <div style="flex:1;">
+            <label class="form-label">Width</label>
+            <input type="number" class="form-input" id="canvasWidth" value="1280" onchange="resizeCanvas()" />
+          </div>
+          <div style="flex:1;">
+            <label class="form-label">Height</label>
+            <input type="number" class="form-input" id="canvasHeight" value="720" onchange="resizeCanvas()" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Background Settings -->
+    <div class="panel-section">
+      <div class="panel-header" onclick="togglePanel(this.parentElement)">
+        <span class="panel-title">🎨 Background</span>
+        <span class="panel-toggle">▼</span>
+      </div>
+      <div class="panel-content">
+        <div class="form-group">
+          <label class="form-label">Background Type</label>
+          <div class="form-row">
+            <button class="style-btn active" id="bg-solid" onclick="setBgType('solid')" style="flex:1;">Solid</button>
+            <button class="style-btn" id="bg-gradient" onclick="setBgType('gradient')" style="flex:1;">Gradient</button>
+            <button class="style-btn" id="bg-image" onclick="setBgType('image')" style="flex:1;">Image</button>
+          </div>
+        </div>
+
+        <!-- Solid Color -->
+        <div id="bg-solid-options">
+          <div class="form-group">
+            <label class="form-label">Background Color</label>
+            <div class="form-row">
+              <input type="color" id="bgColor" value="#1a1a2e" onchange="updateBackground()" />
+              <input type="text" class="form-input" id="bgColorHex" value="#1a1a2e" onchange="updateBgFromHex()" />
+            </div>
+            <div class="color-presets" style="display:flex; gap:4px; flex-wrap:wrap; margin-top:6px;">
+              <div class="color-preset" style="background:#000000; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#000000')"></div>
+              <div class="color-preset" style="background:#ffffff; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#ffffff')"></div>
+              <div class="color-preset" style="background:#e94560; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#e94560')"></div>
+              <div class="color-preset" style="background:#0f3460; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#0f3460')"></div>
+              <div class="color-preset" style="background:#533483; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#533483')"></div>
+              <div class="color-preset" style="background:#00b894; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#00b894')"></div>
+              <div class="color-preset" style="background:#ffd700; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#ffd700')"></div>
+              <div class="color-preset" style="background:#ff6b6b; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#ff6b6b')"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gradient -->
+        <div id="bg-gradient-options" style="display:none;">
+          <div class="gradient-preview" id="gradientPreview"></div>
+          <div class="gradient-colors">
+            <div class="gradient-stop">
+              <input type="color" id="gradColor1" value="#e94560" onchange="updateBackground()" />
+              <label>Start</label>
+            </div>
+            <div class="gradient-stop">
+              <input type="color" id="gradColor2" value="#0f3460" onchange="updateBackground()" />
+              <label>Mid</label>
+            </div>
+            <div class="gradient-stop">
+              <input type="color" id="gradColor3" value="#533483" onchange="updateBackground()" />
+              <label>End</label>
+            </div>
+          </div>
+          <div class="gradient-direction">
+            <button class="dir-btn active" onclick="setGradDir('to right',this)">→</button>
+            <button class="dir-btn" onclick="setGradDir('to left',this)">←</button>
+            <button class="dir-btn" onclick="setGradDir('to bottom',this)">↓</button>
+            <button class="dir-btn" onclick="setGradDir('to top',this)">↑</button>
+            <button class="dir-btn" onclick="setGradDir('to bottom right',this)">↘</button>
+            <button class="dir-btn" onclick="setGradDir('to bottom left',this)">↙</button>
+            <button class="dir-btn" onclick="setGradDir('to top right',this)">↗</button>
+            <button class="dir-btn" onclick="setGradDir('to top left',this)">↖</button>
+            <button class="dir-btn" onclick="setGradDir('45deg',this)">45°</button>
+            <button class="dir-btn" onclick="setGradDir('135deg',this)">135°</button>
+            <button class="dir-btn" onclick="setGradDir('radial',this)">◎</button>
+          </div>
+        </div>
+
+        <!-- Background Image -->
+        <div id="bg-image-options" style="display:none;">
+          <div class="form-group">
+            <label class="form-label">Upload Background Image</label>
+            <input type="file" id="bgImageInput" accept="image/*" onchange="loadBgImage(event)" style="display:none;" />
+            <button class="btn btn-secondary" onclick="document.getElementById('bgImageInput').click()" style="width:100%;">
+              📁 Choose Background Image
+            </button>
+            <div class="form-group" style="margin-top:8px;">
+              <label class="form-label">Fit Mode</label>
+              <select class="form-select" id="bgFitMode" onchange="updateBackground()">
+                <option value="cover">Cover (Fill)</option>
+                <option value="contain">Contain (Fit)</option>
+                <option value="stretch">Stretch</option>
+                <option value="center">Center</option>
+                <option value="tile">Tile/Repeat</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Text Properties -->
+    <div class="panel-section" id="textProperties" style="display:none;">
+      <div class="panel-header" onclick="togglePanel(this.parentElement)">
+        <span class="panel-title">✏️ Text Properties</span>
+        <span class="panel-toggle">▼</span>
+      </div>
+      <div class="panel-content">
+        <div class="form-group">
+          <label class="form-label">Text Content</label>
+          <textarea class="form-input" id="textContent" rows="2" oninput="updateSelectedText()" placeholder="Enter your text..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Font Family</label>
+          <select class="form-select" id="fontFamily" onchange="updateSelectedText()">
+            <optgroup label="Sans Serif">
+              <option value="Inter" selected="">Inter</option>
+              <option value="Roboto">Roboto</option>
+              <option value="Open Sans">Open Sans</option>
+              <option value="Poppins">Poppins</option>
+              <option value="Montserrat">Montserrat</option>
+              <option value="Noto Sans">Noto Sans</option>
+              <option value="Sora">Sora</option>
+              <option value="Space Grotesk">Space Grotesk</option>
+              <option value="Raleway">Raleway</option>
+              <option value="Ubuntu">Ubuntu</option>
+              <option value="Dosis">Dosis</option>
+              <option value="Josefin Sans">Josefin Sans</option>
+              <option value="Prompt">Prompt</option>
+              <option value="Exo 2">Exo 2</option>
+              <option value="Titillium Web">Titillium Web</option>
+              <option value="Teko">Teko</option>
+              <option value="Oswald">Oswald</option>
+              <option value="Rajdhani">Rajdhani</option>
+              <option value="Yantramanav">Yantramanav</option>
+            </optgroup>
+            <optgroup label="Display / Impact">
+              <option value="Bebas Neue">Bebas Neue</option>
+              <option value="Anton">Anton</option>
+              <option value="Bangers">Bangers</option>
+              <option value="Black Ops One">Black Ops One</option>
+              <option value="Bowlby One SC">Bowlby One SC</option>
+              <option value="Bungee">Bungee</option>
+              <option value="Changa One">Changa One</option>
+              <option value="Concert One">Concert One</option>
+              <option value="Dela Gothic One">Dela Gothic One</option>
+              <option value="Fugaz One">Fugaz One</option>
+              <option value="Russo One">Russo One</option>
+              <option value="Sigmar One">Sigmar One</option>
+              <option value="Fredoka One">Fredoka One</option>
+              <option value="Permanent Marker">Permanent Marker</option>
+              <option value="Press Start 2P">Press Start 2P</option>
+            </optgroup>
+            <optgroup label="Serif">
+              <option value="Playfair Display">Playfair Display</option>
+              <option value="Vollkorn">Vollkorn</option>
+              <option value="Slabo 27px">Slabo 27px</option>
+            </optgroup>
+            <optgroup label="Cursive / Handwriting">
+              <option value="Lobster">Lobster</option>
+              <option value="Pacifico">Pacifico</option>
+              <option value="Comfortaa">Comfortaa</option>
+              <option value="Croissant One">Croissant One</option>
+            </optgroup>
+            <optgroup label="Monospace">
+              <option value="Courier Prime">Courier Prime</option>
+            </optgroup>
+          </select>
+        </div>
+
+        <!-- Add Custom Font -->
+        <div class="form-group">
+          <label class="form-label">Add Custom Font</label>
+          <div class="custom-font-input">
+            <input type="text" class="form-input" id="customFontName" placeholder="Font name..." />
+            <button class="btn btn-secondary" onclick="addCustomFont()" style="white-space:nowrap;">+ Add</button>
+          </div>
+          <div class="custom-font-list" id="customFontList" style="max-height:100px; overflow-y:auto; margin-top:6px;"></div>
+        </div>
+
+        <div class="form-row">
+          <div style="flex:1;">
+            <label class="form-label">Font Size</label>
+            <div class="form-row">
+              <button class="btn-icon" onclick="adjustFontSize(-2)" style="width:30px;height:30px;">A-</button>
+              <input type="number" class="form-input form-input-sm" id="fontSize" value="48" min="8" max="300" onchange="updateSelectedText()" />
+              <button class="btn-icon" onclick="adjustFontSize(2)" style="width:30px;height:30px;">A+</button>
+            </div>
+          </div>
+          <div style="flex:1;">
+            <label class="form-label">Line Height</label>
+            <input type="number" class="form-input" id="lineHeight" value="1.2" step="0.1" min="0.5" max="3" onchange="updateSelectedText()" />
+          </div>
+        </div>
+
+        <!-- Text Style -->
+        <div class="form-group">
+          <label class="form-label">Text Style</label>
+          <div class="style-buttons">
+            <button class="style-btn style-btn-bold" onclick="toggleStyle('bold',this)" title="Bold">B</button>
+            <button class="style-btn style-btn-italic" onclick="toggleStyle('italic',this)" title="Italic">I</button>
+            <button class="style-btn style-btn-underline" onclick="toggleStyle('underline',this)" title="Underline">U</button>
+            <button class="style-btn" onclick="toggleStyle('uppercase',this)" title="Uppercase" style="font-size:12px;font-weight:700;">AA</button>
+            <button class="style-btn" onclick="toggleStyle('lowercase',this)" title="Lowercase" style="font-size:12px;">aa</button>
+            <button class="style-btn" onclick="toggleStyle('strikethrough',this)" title="Strikethrough" style="font-size:12px;text-decoration:line-through;">S</button>
+            <button class="style-btn" onclick="toggleStyle('letter-spacing',this)" title="Letter Spacing" style="font-size:11px;letter-spacing:3px;font-weight:700;">A A</button>
+          </div>
+        </div>
+
+        <!-- Alignment -->
+        <div class="form-group">
+          <label class="form-label">Text Alignment</label>
+          <div class="align-buttons">
+            <button class="style-btn" onclick="setTextAlign('left',this)" title="Left">☰</button>
+            <button class="style-btn active" onclick="setTextAlign('center',this)" title="Center">☷</button>
+            <button class="style-btn" onclick="setTextAlign('right',this)" title="Right">☱</button>
+          </div>
+        </div>
+
+        <!-- Colors -->
+        <div class="form-row">
+          <div style="flex:1;">
+            <label class="form-label">Text Color</label>
+            <div class="form-row">
+              <input type="color" id="textColor" value="#ffffff" onchange="updateSelectedText()" />
+              <input type="text" class="form-input" id="textColorHex" value="#ffffff" style="font-size:12px;" />
+            </div>
+          </div>
+          <div style="flex:1;">
+            <label class="form-label">Text BG Color</label>
+            <div class="form-row">
+              <input type="color" id="textBgColor" value="#000000" onchange="updateSelectedText()" />
+              <input type="text" class="form-input" id="textBgColorHex" value="#000000" style="font-size:12px;" />
+              <button class="style-btn" onclick="toggleTextBg()" title="Toggle Text Background" style="width:30px;height:30px;">📦</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Text Shadow -->
+        <div class="form-group">
+          <label class="form-label">Text Shadow</label>
+          <div class="style-buttons" style="margin-bottom:8px;">
+            <button class="style-btn" onclick="toggleTextShadow()" id="shadowToggle" title="Enable Shadow">☀️</button>
+          </div>
+          <div id="shadowControls" style="display:none;">
+            <div class="form-row" style="margin-bottom:6px;">
+              <div style="flex:1;">
+                <label class="form-label">Offset X</label>
+                <input type="number" class="form-input" id="shadowX" value="3" onchange="updateSelectedText()" />
+              </div>
+              <div style="flex:1;">
+                <label class="form-label">Offset Y</label>
+                <input type="number" class="form-input" id="shadowY" value="3" onchange="updateSelectedText()" />
+              </div>
+            </div>
+            <div class="form-row">
+              <div style="flex:1;">
+                <label class="form-label">Blur</label>
+                <input type="number" class="form-input" id="shadowBlur" value="4" min="0" max="50" onchange="updateSelectedText()" />
+              </div>
+              <div style="flex:1;">
+                <label class="form-label">Color</label>
+                <input type="color" id="shadowColor" value="#000000" onchange="updateSelectedText()" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Text Effects -->
+        <div class="form-group">
+          <label class="form-label">Text Effects</label>
+          <div class="effect-grid">
+            <div class="effect-item" onclick="toggleEffect('outline',this)" data-effect="outline">
+              🔲 Outline
+            </div>
+            <div class="effect-item" onclick="toggleEffect('glow',this)" data-effect="glow">
+              ✨ Glow
+            </div>
+            <div class="effect-item" onclick="toggleEffect('neon',this)" data-effect="neon">
+              💫 Neon
+            </div>
+            <div class="effect-item" onclick="toggleEffect('3d',this)" data-effect="3d">
+              🎯 3D Depth
+            </div>
+            <div class="effect-item" onclick="toggleEffect('gradient-text',this)" data-effect="gradient-text">
+              🌈 Gradient
+            </div>
+            <div class="effect-item" onclick="toggleEffect('stroke',this)" data-effect="stroke">
+              ✏️ Stroke
+            </div>
+          </div>
+          <div class="form-group" style="margin-top:8px;">
+            <label class="form-label">Outline/Stroke Width</label>
+            <input type="range" id="strokeWidth" min="0" max="20" value="2" oninput="updateSelectedText()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Stroke Color</label>
+            <input type="color" id="strokeColor" value="#000000" onchange="updateSelectedText()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Glow Color</label>
+            <input type="color" id="glowColor" value="#e94560" onchange="updateSelectedText()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Glow Size</label>
+            <input type="range" id="glowSize" min="1" max="30" value="10" oninput="updateSelectedText()" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Gradient End Color</label>
+            <input type="color" id="textGradColor2" value="#00d2ff" onchange="updateSelectedText()" />
+          </div>
+        </div>
+
+        <!-- Opacity -->
+        <div class="form-group">
+          <label class="form-label">Opacity</label>
+          <input type="range" id="textOpacity" min="0" max="1" step="0.01" value="1" oninput="updateSelectedText()" />
+        </div>
+
+        <!-- Rotation -->
+        <div class="form-group">
+          <label class="form-label">Rotation (degrees)</label>
+          <div class="form-row">
+            <input type="range" id="textRotation" min="-180" max="180" value="0" oninput="updateSelectedText()" style="flex:1;" />
+            <input type="number" class="form-input form-input-sm" id="textRotationVal" value="0" onchange="updateSelectedText()" />
+          </div>
+        </div>
+
+        <!-- Position -->
+        <div class="form-group">
+          <label class="form-label">Position</label>
+          <div class="form-row">
+            <div style="flex:1;">
+              <label class="form-label">X</label>
+              <input type="number" class="form-input" id="textX" onchange="updateSelectedText()" />
+            </div>
+            <div style="flex:1;">
+              <label class="form-label">Y</label>
+              <input type="number" class="form-input" id="textY" onchange="updateSelectedText()" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Move Buttons -->
+        <div class="form-group">
+          <label class="form-label">Move Text</label>
+          <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:4px; max-width:150px; margin:0 auto;">
+            <div></div>
+            <button class="btn-icon" onclick="moveText(0,-10)" style="margin:0 auto;">⬆️</button>
+            <div></div>
+            <button class="btn-icon" onclick="moveText(-10,0)">⬅️</button>
+            <button class="btn-icon" onclick="centerText()" style="font-size:10px;" title="Center on Canvas">⊕</button>
+            <button class="btn-icon" onclick="moveText(10,0)">➡️</button>
+            <div></div>
+            <button class="btn-icon" onclick="moveText(0,10)">⬇️</button>
+            <div></div>
+          </div>
+        </div>
+
+        <!-- Width -->
+        <div class="form-group">
+          <label class="form-label">Max Width (0 = auto)</label>
+          <input type="number" class="form-input" id="textMaxWidth" value="0" min="0" onchange="updateSelectedText()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Properties -->
+    <div class="panel-section" id="imageProperties" style="display:none;">
+      <div class="panel-header" onclick="togglePanel(this.parentElement)">
+        <span class="panel-title">🖼️ Image Properties</span>
+        <span class="panel-toggle">▼</span>
+      </div>
+      <div class="panel-content">
+        <div class="form-group">
+          <label class="form-label">Position</label>
+          <div class="form-row">
+            <div style="flex:1;">
+              <label class="form-label">X</label>
+              <input type="number" class="form-input" id="imgX" onchange="updateSelectedImage()" />
+            </div>
+            <div style="flex:1;">
+              <label class="form-label">Y</label>
+              <input type="number" class="form-input" id="imgY" onchange="updateSelectedImage()" />
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Size</label>
+          <div class="form-row">
+            <div style="flex:1;">
+              <label class="form-label">Width</label>
+              <input type="number" class="form-input" id="imgWidth" onchange="updateSelectedImage()" />
+            </div>
+            <div style="flex:1;">
+              <label class="form-label">Height</label>
+              <input type="number" class="form-input" id="imgHeight" onchange="updateSelectedImage()" />
+            </div>
+          </div>
+          <label style="font-size:11px; color:var(--text-muted); margin-top:4px; display:block;">
+            <input type="checkbox" id="imgLockRatio" checked="" /> Lock Aspect Ratio
+          </label>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Rotation</label>
+          <input type="range" id="imgRotation" min="-180" max="180" value="0" oninput="updateSelectedImage()" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Opacity</label>
+          <input type="range" id="imgOpacity" min="0" max="1" step="0.01" value="1" oninput="updateSelectedImage()" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Border Radius</label>
+          <input type="range" id="imgRadius" min="0" max="200" value="0" oninput="updateSelectedImage()" />
+        </div>
+      </div>
+    </div>
+
+    <!-- Layers Panel -->
+    <div class="panel-section">
+      <div class="panel-header" onclick="togglePanel(this.parentElement)">
+        <span class="panel-title">📑 Layers</span>
+        <span class="panel-toggle">▼</span>
+      </div>
+      <div class="panel-content">
+        <div id="layersList"></div>
+      </div>
+    </div>
+
+    <!-- Export Settings -->
+    <div class="panel-section">
+      <div class="panel-header" onclick="togglePanel(this.parentElement)">
+        <span class="panel-title">💾 Export Settings</span>
+        <span class="panel-toggle">▼</span>
+      </div>
+      <div class="panel-content">
+        <div class="form-group">
+          <label class="form-label">Format</label>
+          <select class="form-select" id="exportFormat">
+            <option value="png">PNG (Lossless)</option>
+            <option value="jpeg">JPEG (Compressed)</option>
+            <option value="webp">WebP (Modern)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Quality: <span id="qualityVal">95</span>%</label>
+          <input type="range" id="exportQuality" min="10" max="100" value="95" oninput="document.getElementById('qualityVal').textContent=this.value" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Scale Factor</label>
+          <select class="form-select" id="exportScale">
+            <option value="1">1x (Original)</option>
+            <option value="2" selected="">2x (HD)</option>
+            <option value="3">3x (Ultra HD)</option>
+            <option value="4">4x (Maximum)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Output Size: <span id="outputSize">2560 × 1440</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div class="toast" id="toast"></div>
+
+<!-- Cover/Banner Modal -->
+<div class="modal-overlay" id="coverBannerModal">
+  <div class="modal">
+    <div class="modal-title">
+      📏 Cover &amp; Banner Sizes
+      <button class="btn-icon" onclick="closeCoverBannerModal()" style="margin-left: auto;">✕</button>
+    </div>
+    
+    <div class="size-presets">
+      <div class="size-preset" onclick="setCoverSize(2560, 1440, 'YouTube Channel Art', this)">
+        <div class="size-preset-name">🎬 YouTube Channel Art</div>
+        <div class="size-preset-dims">2560 × 1440 px</div>
+        <div class="size-preset-dims" style="margin-top: 4px; color: var(--accent);">16:9 (Safe area center)</div>
+      </div>
+      
+      <div class="size-preset" onclick="setCoverSize(820, 360, 'Facebook Cover', this)">
+        <div class="size-preset-name">📘 Facebook Cover</div>
+        <div class="size-preset-dims">820 × 360 px</div>
+        <div class="size-preset-dims" style="margin-top: 4px; color: var(--accent);">Wide format</div>
+      </div>
+      
+      <div class="size-preset" onclick="setCoverSize(1500, 500, 'Twitter/X Header', this)">
+        <div class="size-preset-name">🐦 Twitter (X) Header</div>
+        <div class="size-preset-dims">1500 × 500 px</div>
+        <div class="size-preset-dims" style="margin-top: 4px; color: var(--accent);">3:1 ratio</div>
+      </div>
+      
+      <div class="size-preset" onclick="setCoverSize(1584, 396, 'LinkedIn Banner', this)">
+        <div class="size-preset-name">💼 LinkedIn Banner</div>
+        <div class="size-preset-dims">1584 × 396 px</div>
+        <div class="size-preset-dims" style="margin-top: 4px; color: var(--accent);">Wide format</div>
+      </div>
+      
+      <div class="size-preset" onclick="setCoverSize(1080, 1080, 'Instagram Post', this)">
+        <div class="size-preset-name">📷 Instagram Post</div>
+        <div class="size-preset-dims">1080 × 1080 px</div>
+        <div class="size-preset-dims" style="margin-top: 4px; color: var(--accent);">1:1 square</div>
+      </div>
+      
+      <div class="size-preset" onclick="setCoverSize(1920, 600, 'Website Hero Banner', this)">
+        <div class="size-preset-name">🌐 Website Hero Banner</div>
+        <div class="size-preset-dims">1920 × 600 px</div>
+        <div class="size-preset-dims" style="margin-top: 4px; color: var(--accent);">Wide format</div>
+      </div>
+    </div>
+    
+    <div class="form-group" style="border-top: 1px solid var(--border); padding-top: 16px;">
+      <label class="form-label">Custom Size</label>
+      <div class="form-row">
+        <div style="flex: 1;">
+          <input type="number" class="form-input" id="customCoverWidth" placeholder="Width (px)" value="1920" />
+        </div>
+        <div style="flex: 1;">
+          <input type="number" class="form-input" id="customCoverHeight" placeholder="Height (px)" value="600" />
+        </div>
+        <button class="btn btn-primary" onclick="setCustomCoverSize()">Apply</button>
+      </div>
+    </div>
+    
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeCoverBannerModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+
+
+<script src="script.js"></script></body></html>

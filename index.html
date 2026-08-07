@@ -1,723 +1,160 @@
 <!DOCTYPE html><html lang="en"><head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>🎨 Thumbnail Maker Pro</title>
-<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Bangers&amp;family=Bebas+Neue&amp;family=Black+Ops+One&amp;family=Bowlby+One+SC&amp;family=Bungee&amp;family=Changa+One&amp;family=Comfortaa:wght@700&amp;family=Concert+One&amp;family=Courier+Prime:wght@700&amp;family=Croissant+One&amp;family=Dela+Gothic+One&amp;family=Dosis:wght@800&amp;family=Exo+2:wght@900&amp;family=Fredoka+One&amp;family=Fugaz+One&amp;family=Inter:wght@400;700;900&amp;family=Josefin+Sans:wght@700&amp;family=Kanit:wght@400;700;900&amp;family=Lobster&amp;family=Montserrat:wght@400;700;900&amp;family=Noto+Sans:wght@400;700;900&amp;family=Open+Sans:wght@400;700&amp;family=Oswald:wght@400;700&amp;family=Pacifico&amp;family=Permanent+Marker&amp;family=Playfair+Display:wght@700;900&amp;family=Poppins:wght@400;600;700;900&amp;family=Press+Start+2P&amp;family=Prompt:wght@400;700;900&amp;family=Rajdhani:wght@700&amp;family=Raleway:wght@400;700;900&amp;family=Roboto:wght@400;700;900&amp;family=Roboto+Condensed:wght@700&amp;family=Russo+One&amp;family=Sigmar+One&amp;family=Slabo+27px&amp;family=Sora:wght@400;700;800&amp;family=Space+Grotesk:wght@700&amp;family=Teko:wght@700&amp;family=Titillium+Web:wght@700;900&amp;family=Ubuntu:wght@700&amp;family=Vollkorn:wght@700;900&amp;family=Yantramanav:wght@700;900&amp;display=swap" rel="stylesheet" />
-
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Mobile Web IP Camera</title>
+    <!-- External Libraries -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
 <link rel="stylesheet" href="style.css" /></head>
 <body>
 
-<!-- Export Progress Bar -->
-<div class="export-progress" id="exportProgress">
-  <div class="export-progress-bar" id="exportProgressBar"></div>
-</div>
-
-<!-- Header -->
-<header class="app-header">
-  <div class="logo">
-    <div class="logo-icon">🎨</div>
-    Thumbnail<span>Maker</span> Pro
-  </div>
-  <div class="header-actions">
-    <button class="btn btn-secondary" onclick="clearCanvas()" title="Clear All">🗑️ Clear</button>
-    <button class="btn btn-secondary" onclick="undoAction()" title="Undo">↩️ Undo</button>
-    <button class="btn btn-secondary" onclick="redoAction()" title="Redo">↪️ Redo</button>
-    <!-- NEW: Cover/Banner Button -->
-    <button class="btn btn-secondary" onclick="openCoverBannerModal()" title="Cover &amp; Banner Sizes">📏 Cover / Banner</button>
-    <button class="btn btn-success" onclick="exportHD()" title="Save HD Quality">💾 Save HD</button>
-    <button class="btn btn-primary" onclick="exportStandard()" title="Save Standard">📥 Save</button>
-  </div>
+<header>
+    <h1><i class="fas fa-video"></i> Web IP Cam</h1>
+    <button id="theme-toggle" onclick="toggleTheme()" style="padding: 8px; border: none; background: transparent;"><i class="fas fa-moon"></i></button>
 </header>
 
-<!-- Main Layout -->
-<div class="app-layout">
-  
-  <!-- Left Toolbar -->
-  <div class="toolbar">
-    <button class="tool-btn active" onclick="setTool('select')" id="tool-select">
-      ➤<span class="tooltip">Select / Move</span>
-    </button>
-    <button class="tool-btn" onclick="setTool('text')" id="tool-text">
-      T<span class="tooltip">Add Text</span>
-    </button>
-    <button class="tool-btn" onclick="setTool('image')" id="tool-image">
-      🖼️<span class="tooltip">Add Image</span>
-    </button>
-    <div class="tool-divider"></div>
-    <button class="tool-btn" onclick="bringForward()">
-      ⬆️<span class="tooltip">Bring Forward</span>
-    </button>
-    <button class="tool-btn" onclick="sendBackward()">
-      ⬇️<span class="tooltip">Send Backward</span>
-    </button>
-    <div class="tool-divider"></div>
-    <button class="tool-btn" onclick="duplicateSelected()">
-      📋<span class="tooltip">Duplicate</span>
-    </button>
-    <button class="tool-btn" onclick="deleteSelected()">
-      🗑️<span class="tooltip">Delete Selected</span>
-    </button>
-    <div class="tool-divider"></div>
-    <button class="tool-btn" onclick="zoomIn()">
-      🔍<span class="tooltip">Zoom In</span>
-    </button>
-    <button class="tool-btn" onclick="zoomOut()">
-      🔎<span class="tooltip">Zoom Out</span>
-    </button>
-    <button class="tool-btn" onclick="zoomReset()">
-      ⬜<span class="tooltip">Fit to View</span>
-    </button>
-    <div class="tool-divider"></div>
-    <button class="tool-btn" onclick="toggleGrid()">
-      🔲<span class="tooltip">Toggle Grid</span>
-    </button>
-  </div>
+<main>
+    <!-- HOME VIEW (Dashboard) -->
+    <section id="view-home" class="view active">
+        <div class="dashboard-card">
+            <h2 style="margin-top:0;">Dashboard</h2>
+            <div class="stat-grid">
+                <div class="stat"><span>Camera Status</span><strong id="stat-status" class="offline">Offline</strong></div>
+                <div class="stat"><span>Connected Users</span><strong id="stat-users">0</strong></div>
+                <div class="stat"><span>Resolution</span><strong id="stat-res">-</strong></div>
+                <div class="stat"><span>FPS</span><strong id="stat-fps">0</strong></div>
+                <div class="stat"><span>Bitrate</span><strong id="stat-bitrate">-</strong></div>
+                <div class="stat"><span>Recording</span><strong id="stat-rec" style="color:inherit;">OFF</strong></div>
+                <div class="stat"><span>Battery</span><strong id="stat-battery">-</strong></div>
+                <div class="stat"><span>Temperature</span><strong>Normal</strong></div>
+            </div>
+        </div>
+    </section>
 
-  <!-- Canvas Area -->
-  <div class="canvas-area" id="canvasArea">
-    <div class="canvas-wrapper" id="canvasWrapper">
-      <canvas id="mainCanvas" width="1280" height="720"></canvas>
-    </div>
-  </div>
+    <!-- CAMERA VIEW -->
+    <section id="view-camera" class="view">
+        <div class="video-container">
+            <video id="local-video" autoplay="" playsinline="" muted=""></video>
+            <div id="recording-indicator" class="hidden">🔴 REC <span id="rec-timer">00:00</span></div>
+        </div>
+        <div class="controls-grid">
+            <button onclick="startCamera()"><i class="fas fa-play"></i> Start</button>
+            <button onclick="stopCamera()"><i class="fas fa-stop"></i> Stop</button>
+            <button onclick="pauseStream()"><i class="fas fa-pause"></i> Pause</button>
+            <button onclick="resumeStream()"><i class="fas fa-forward"></i> Resume</button>
+            <button onclick="switchCamera()"><i class="fas fa-sync"></i> Switch</button>
+            <button onclick="toggleTorch()"><i class="fas fa-bolt"></i> Flash</button>
+            <button onclick="toggleMute()"><i class="fas fa-microphone-slash"></i> Mute</button>
+            <button onclick="toggleQuality()"><i class="fas fa-hd"></i> HD/SD</button>
+            <button onclick="rotateCamera()"><i class="fas fa-redo"></i> Rotate</button>
+            <button onclick="toggleRecording()"><i class="fas fa-circle" style="color:var(--danger-color)"></i> Record</button>
+            <button onclick="captureLocalSnapshot()"><i class="fas fa-camera"></i> Snap</button>
+            <button onclick="toggleFullscreen('local-video')"><i class="fas fa-expand"></i> Full</button>
+        </div>
+    </section>
 
-  <!-- Right Properties Panel -->
-  <div class="properties-panel" id="propertiesPanel">
-    
-    <!-- Size Settings -->
-    <div class="panel-section" id="sizeSection">
-      <div class="panel-header" onclick="togglePanel('sizeSection')">
-        <span class="panel-title">📐 Canvas Size</span>
-        <span class="panel-toggle">▼</span>
-      </div>
-      <div class="panel-content">
-        <div class="size-presets" style="grid-template-columns: repeat(2, 1fr);">
-          <div class="size-preset active" onclick="setSize(1280,720,'YouTube Thumbnail',this)">
-            <div class="size-preset-name">YouTube</div>
-            <div class="size-preset-dims">1280 × 720</div>
-          </div>
-          <div class="size-preset" onclick="setSize(1920,1080,'Video HD',this)">
-            <div class="size-preset-name">Video HD</div>
-            <div class="size-preset-dims">1920 × 1080</div>
-          </div>
-          <div class="size-preset" onclick="setSize(1080,1920,'TikTok/Story',this)">
-            <div class="size-preset-name">TikTok/Story</div>
-            <div class="size-preset-dims">1080 × 1920</div>
-          </div>
-          <div class="size-preset" onclick="setSize(1080,1920,'WhatsApp Status',this)">
-            <div class="size-preset-name">WhatsApp</div>
-            <div class="size-preset-dims">1080 × 1920</div>
-          </div>
-          <div class="size-preset" onclick="setSize(1080,1080,'Instagram Post',this)">
-            <div class="size-preset-name">Insta Post</div>
-            <div class="size-preset-dims">1080 × 1080</div>
-          </div>
-          <div class="size-preset" onclick="setSize(1200,630,'Facebook Post',this)">
-            <div class="size-preset-name">Facebook</div>
-            <div class="size-preset-dims">1200 × 630</div>
-          </div>
-          <div class="size-preset" onclick="setSize(1500,500,'Twitter/X',this)">
-            <div class="size-preset-name">Twitter/X</div>
-            <div class="size-preset-dims">1500 × 500</div>
-          </div>
-          <div class="size-preset" onclick="setSize(640,360,'Low Res',this)">
-            <div class="size-preset-name">Low Res</div>
-            <div class="size-preset-dims">640 × 360</div>
-          </div>
+    <!-- NETWORK VIEW -->
+    <section id="view-network" class="view">
+        <div class="network-card">
+            <h2>Camera Server</h2>
+            <div class="status-badge offline" id="server-status">Stopped</div>
+            <br />
+            <button id="btn-start-server" class="primary" onclick="startServer()" style="width:100%; margin-top:10px;">Start Camera Server</button>
+            
+            <div id="server-info" class="hidden">
+                <div class="info-row"><span>Local IP Address:</span> <strong id="display-mock-ip">192.168.1.x</strong></div>
+                <div class="info-row"><span>Port:</span> <strong>8080</strong></div>
+                <div class="info-row"><span>Camera ID:</span> <strong id="display-peer-id" style="font-size:12px; word-break:break-all;">Generating...</strong></div>
+                <div class="info-row"><span>Status:</span> <strong class="online">Online</strong></div>
+                
+                <div id="qrcode" class="qr-container"></div>
+                <p class="hint">Scan QR code with another device on the same WiFi to view the live stream instantly.</p>
+                
+                <button onclick="switchView('viewer')" style="width:100%; margin-top:15px;"><i class="fas fa-eye"></i> Open Viewer Mode</button>
+            </div>
         </div>
-        <div class="form-row" style="margin-bottom:8px;">
-          <div style="flex:1;">
-            <label class="form-label">Width</label>
-            <input type="number" class="form-input" id="canvasWidth" value="1280" onchange="resizeCanvas()" />
-          </div>
-          <div style="flex:1;">
-            <label class="form-label">Height</label>
-            <input type="number" class="form-input" id="canvasHeight" value="720" onchange="resizeCanvas()" />
-          </div>
-        </div>
-      </div>
-    </div>
+    </section>
 
-    <!-- Background Settings -->
-    <div class="panel-section">
-      <div class="panel-header" onclick="togglePanel(this.parentElement)">
-        <span class="panel-title">🎨 Background</span>
-        <span class="panel-toggle">▼</span>
-      </div>
-      <div class="panel-content">
-        <div class="form-group">
-          <label class="form-label">Background Type</label>
-          <div class="form-row">
-            <button class="style-btn active" id="bg-solid" onclick="setBgType('solid')" style="flex:1;">Solid</button>
-            <button class="style-btn" id="bg-gradient" onclick="setBgType('gradient')" style="flex:1;">Gradient</button>
-            <button class="style-btn" id="bg-image" onclick="setBgType('image')" style="flex:1;">Image</button>
-          </div>
+    <!-- RECORDINGS VIEW -->
+    <section id="view-recordings" class="view">
+        <h2>File Manager</h2>
+        <div id="recordings-list" class="recordings-list">
+            <p style="opacity:0.6; text-align:center;">No recordings yet.</p>
         </div>
+    </section>
 
-        <!-- Solid Color -->
-        <div id="bg-solid-options">
-          <div class="form-group">
-            <label class="form-label">Background Color</label>
-            <div class="form-row">
-              <input type="color" id="bgColor" value="#1a1a2e" onchange="updateBackground()" />
-              <input type="text" class="form-input" id="bgColorHex" value="#1a1a2e" onchange="updateBgFromHex()" />
-            </div>
-            <div class="color-presets" style="display:flex; gap:4px; flex-wrap:wrap; margin-top:6px;">
-              <div class="color-preset" style="background:#000000; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#000000')"></div>
-              <div class="color-preset" style="background:#ffffff; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#ffffff')"></div>
-              <div class="color-preset" style="background:#e94560; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#e94560')"></div>
-              <div class="color-preset" style="background:#0f3460; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#0f3460')"></div>
-              <div class="color-preset" style="background:#533483; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#533483')"></div>
-              <div class="color-preset" style="background:#00b894; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#00b894')"></div>
-              <div class="color-preset" style="background:#ffd700; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#ffd700')"></div>
-              <div class="color-preset" style="background:#ff6b6b; width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid #333;" onclick="setBgColor('#ff6b6b')"></div>
-            </div>
-          </div>
+    <!-- SETTINGS VIEW -->
+    <section id="view-settings" class="view">
+        <h2>Settings</h2>
+        <div class="settings-form">
+            <label>Default Resolution
+                <select id="setting-resolution">
+                    <option value="240p">240p (Low)</option>
+                    <option value="360p">360p</option>
+                    <option value="480p">480p (SD)</option>
+                    <option value="720p" selected="">720p (HD)</option>
+                    <option value="1080p">1080p (FHD)</option>
+                </select>
+            </label>
+            <label>Default Camera
+                <select id="setting-camera">
+                    <option value="environment">Rear Camera</option>
+                    <option value="user">Front Camera</option>
+                </select>
+            </label>
+            <label>Password Protection (Optional)
+                <input type="password" id="setting-password" placeholder="Leave blank for no password" />
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="setting-audio" checked="" /> Audio Enabled
+            </label>
+            <label class="checkbox-label">
+                <input type="checkbox" id="setting-wake-lock" checked="" /> Keep Screen On (Wake Lock)
+            </label>
+            <button class="primary" onclick="saveSettings()" style="width:100%; margin-top:10px;">Save Settings</button>
         </div>
+    </section>
 
-        <!-- Gradient -->
-        <div id="bg-gradient-options" style="display:none;">
-          <div class="gradient-preview" id="gradientPreview"></div>
-          <div class="gradient-colors">
-            <div class="gradient-stop">
-              <input type="color" id="gradColor1" value="#e94560" onchange="updateBackground()" />
-              <label>Start</label>
-            </div>
-            <div class="gradient-stop">
-              <input type="color" id="gradColor2" value="#0f3460" onchange="updateBackground()" />
-              <label>Mid</label>
-            </div>
-            <div class="gradient-stop">
-              <input type="color" id="gradColor3" value="#533483" onchange="updateBackground()" />
-              <label>End</label>
-            </div>
-          </div>
-          <div class="gradient-direction">
-            <button class="dir-btn active" onclick="setGradDir('to right',this)">→</button>
-            <button class="dir-btn" onclick="setGradDir('to left',this)">←</button>
-            <button class="dir-btn" onclick="setGradDir('to bottom',this)">↓</button>
-            <button class="dir-btn" onclick="setGradDir('to top',this)">↑</button>
-            <button class="dir-btn" onclick="setGradDir('to bottom right',this)">↘</button>
-            <button class="dir-btn" onclick="setGradDir('to bottom left',this)">↙</button>
-            <button class="dir-btn" onclick="setGradDir('to top right',this)">↗</button>
-            <button class="dir-btn" onclick="setGradDir('to top left',this)">↖</button>
-            <button class="dir-btn" onclick="setGradDir('45deg',this)">45°</button>
-            <button class="dir-btn" onclick="setGradDir('135deg',this)">135°</button>
-            <button class="dir-btn" onclick="setGradDir('radial',this)">◎</button>
-          </div>
-          
-          <label class="form-label" style="margin-top: 10px;">Gradient Templates</label>
-          <div class="color-presets" style="display:flex; gap:4px; flex-wrap:wrap; margin-top:6px;">
-            <div class="color-preset" style="background:linear-gradient(to right, #ff477e, #7209b7); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#ff477e', '#b12a99', '#7209b7', 'to right')"></div>
-            <div class="color-preset" style="background:linear-gradient(to right, #f6d365, #fda085); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#f6d365', '#fbba75', '#fda085', 'to right')"></div>
-            <div class="color-preset" style="background:linear-gradient(to right, #84fab0, #8fd3f4); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#84fab0', '#8aced2', '#8fd3f4', 'to right')"></div>
-            <div class="color-preset" style="background:linear-gradient(to bottom right, #f093fb, #f5576c); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#f093fb', '#f275b3', '#f5576c', 'to bottom right')"></div>
-            <div class="color-preset" style="background:linear-gradient(to right, #4facfe, #00f2fe); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#4facfe', '#27cffe', '#00f2fe', 'to right')"></div>
-            <div class="color-preset" style="background:linear-gradient(45deg, #fa709a, #fee140); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#fa709a', '#fca86d', '#fee140', '45deg')"></div>
-            <div class="color-preset" style="background:linear-gradient(to right, #43e97b, #38f9d7); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#43e97b', '#3df0a9', '#38f9d7', 'to right')"></div>
-            <div class="color-preset" style="background:linear-gradient(135deg, #09203f, #537895); width:24px; height:24px; border-radius:4px; cursor:pointer; border:1px solid var(--border);" onclick="setGradientTemplate('#09203f', '#2e4c6a', '#537895', '135deg')"></div>
-          </div>
-        </div>
-
-        <!-- Background Image -->
-        <div id="bg-image-options" style="display:none;">
-          <div class="form-group">
-            <label class="form-label">Upload Background Image</label>
-            <input type="file" id="bgImageInput" accept="image/*" onchange="loadBgImage(event)" style="display:none;" />
-            <button class="btn btn-secondary" onclick="document.getElementById('bgImageInput').click()" style="width:100%;">
-              📁 Choose Background Image
-            </button>
-            <div class="form-group" style="margin-top:8px;">
-              <label class="form-label">Fit Mode</label>
-              <select class="form-select" id="bgFitMode" onchange="updateBackground()">
-                <option value="cover">Cover (Fill)</option>
-                <option value="contain">Contain (Fit)</option>
-                <option value="stretch">Stretch</option>
-                <option value="center">Center</option>
-                <option value="tile">Tile/Repeat</option>
-              </select>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Text Properties -->
-    <div class="panel-section" id="textProperties" style="display:none;">
-      <div class="panel-header" onclick="togglePanel(this.parentElement)">
-        <span class="panel-title">✏️ Text Properties</span>
-        <span class="panel-toggle">▼</span>
-      </div>
-      <div class="panel-content">
-        <div class="form-group">
-          <label class="form-label">Text Content</label>
-          <textarea class="form-input" id="textContent" rows="2" oninput="updateSelectedText()" placeholder="Enter your text..."></textarea>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label">Font Family</label>
-          <select class="form-select" id="fontFamily" onchange="updateSelectedText()">
-            <optgroup label="Sans Serif">
-              <option value="Inter" selected="">Inter</option>
-              <option value="Roboto">Roboto</option>
-              <option value="Open Sans">Open Sans</option>
-              <option value="Poppins">Poppins</option>
-              <option value="Montserrat">Montserrat</option>
-              <option value="Noto Sans">Noto Sans</option>
-              <option value="Sora">Sora</option>
-              <option value="Space Grotesk">Space Grotesk</option>
-              <option value="Raleway">Raleway</option>
-              <option value="Ubuntu">Ubuntu</option>
-              <option value="Dosis">Dosis</option>
-              <option value="Josefin Sans">Josefin Sans</option>
-              <option value="Prompt">Prompt</option>
-              <option value="Exo 2">Exo 2</option>
-              <option value="Titillium Web">Titillium Web</option>
-              <option value="Teko">Teko</option>
-              <option value="Oswald">Oswald</option>
-              <option value="Rajdhani">Rajdhani</option>
-              <option value="Yantramanav">Yantramanav</option>
-            </optgroup>
-            <optgroup label="Display / Impact">
-              <option value="Bebas Neue">Bebas Neue</option>
-              <option value="Anton">Anton</option>
-              <option value="Bangers">Bangers</option>
-              <option value="Black Ops One">Black Ops One</option>
-              <option value="Bowlby One SC">Bowlby One SC</option>
-              <option value="Bungee">Bungee</option>
-              <option value="Changa One">Changa One</option>
-              <option value="Concert One">Concert One</option>
-              <option value="Dela Gothic One">Dela Gothic One</option>
-              <option value="Fugaz One">Fugaz One</option>
-              <option value="Russo One">Russo One</option>
-              <option value="Sigmar One">Sigmar One</option>
-              <option value="Fredoka One">Fredoka One</option>
-              <option value="Permanent Marker">Permanent Marker</option>
-              <option value="Press Start 2P">Press Start 2P</option>
-            </optgroup>
-            <optgroup label="Serif">
-              <option value="Playfair Display">Playfair Display</option>
-              <option value="Vollkorn">Vollkorn</option>
-              <option value="Slabo 27px">Slabo 27px</option>
-            </optgroup>
-            <optgroup label="Cursive / Handwriting">
-              <option value="Lobster">Lobster</option>
-              <option value="Pacifico">Pacifico</option>
-              <option value="Comfortaa">Comfortaa</option>
-              <option value="Croissant One">Croissant One</option>
-            </optgroup>
-            <optgroup label="Monospace">
-              <option value="Courier Prime">Courier Prime</option>
-            </optgroup>
-          </select>
-        </div>
-
-        <!-- Add Custom Font -->
-        <div class="form-group">
-          <label class="form-label">Add Custom Font</label>
-          <div class="custom-font-input">
-            <input type="text" class="form-input" id="customFontName" placeholder="Font name..." />
-            <button class="btn btn-secondary" onclick="addCustomFont()" style="white-space:nowrap;">+ Add</button>
-          </div>
-          <div class="custom-font-list" id="customFontList" style="max-height:100px; overflow-y:auto; margin-top:6px;"></div>
-        </div>
-
-        <div class="form-row">
-          <div style="flex:1;">
-            <label class="form-label">Font Size</label>
-            <div class="form-row">
-              <button class="btn-icon" onclick="adjustFontSize(-2)" style="width:30px;height:30px;">A-</button>
-              <input type="number" class="form-input form-input-sm" id="fontSize" value="48" min="8" max="300" onchange="updateSelectedText()" />
-              <button class="btn-icon" onclick="adjustFontSize(2)" style="width:30px;height:30px;">A+</button>
-            </div>
-          </div>
-          <div style="flex:1;">
-            <label class="form-label">Line Height</label>
-            <input type="number" class="form-input" id="lineHeight" value="1.2" step="0.1" min="0.5" max="3" onchange="updateSelectedText()" />
-          </div>
-        </div>
-
-        <!-- Text Style -->
-        <div class="form-group">
-          <label class="form-label">Text Style</label>
-          <div class="style-buttons">
-            <button class="style-btn style-btn-bold" onclick="toggleStyle('bold',this)" title="Bold">B</button>
-            <button class="style-btn style-btn-italic" onclick="toggleStyle('italic',this)" title="Italic">I</button>
-            <button class="style-btn style-btn-underline" onclick="toggleStyle('underline',this)" title="Underline">U</button>
-            <button class="style-btn" onclick="toggleStyle('uppercase',this)" title="Uppercase" style="font-size:12px;font-weight:700;">AA</button>
-            <button class="style-btn" onclick="toggleStyle('lowercase',this)" title="Lowercase" style="font-size:12px;">aa</button>
-            <button class="style-btn" onclick="toggleStyle('strikethrough',this)" title="Strikethrough" style="font-size:12px;text-decoration:line-through;">S</button>
-            <button class="style-btn" onclick="toggleStyle('letter-spacing',this)" title="Letter Spacing" style="font-size:11px;letter-spacing:3px;font-weight:700;">A A</button>
-          </div>
-        </div>
-
-        <!-- Alignment -->
-        <div class="form-group">
-          <label class="form-label">Text Alignment</label>
-          <div class="align-buttons">
-            <button class="style-btn" onclick="setTextAlign('left',this)" title="Left">☰</button>
-            <button class="style-btn active" onclick="setTextAlign('center',this)" title="Center">☷</button>
-            <button class="style-btn" onclick="setTextAlign('right',this)" title="Right">☱</button>
-          </div>
-        </div>
-
-        <!-- Colors -->
-        <div class="form-row">
-          <div style="flex:1;">
-            <label class="form-label">Text Color</label>
-            <div class="form-row">
-              <input type="color" id="textColor" value="#ffffff" onchange="updateSelectedText()" />
-              <input type="text" class="form-input" id="textColorHex" value="#ffffff" style="font-size:12px;" />
-            </div>
-          </div>
-          <div style="flex:1;">
-            <label class="form-label">Text BG Color</label>
-            <div class="form-row">
-              <input type="color" id="textBgColor" value="#000000" onchange="updateSelectedText()" />
-              <input type="text" class="form-input" id="textBgColorHex" value="#000000" style="font-size:12px;" />
-              <button class="style-btn" onclick="toggleTextBg()" title="Toggle Text Background" style="width:30px;height:30px;">📦</button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Text Shadow -->
-        <div class="form-group">
-          <label class="form-label">Text Shadow</label>
-          <div class="style-buttons" style="margin-bottom:8px;">
-            <button class="style-btn" onclick="toggleTextShadow()" id="shadowToggle" title="Enable Shadow">☀️</button>
-          </div>
-          <div id="shadowControls" style="display:none;">
-            <div class="form-row" style="margin-bottom:6px;">
-              <div style="flex:1;">
-                <label class="form-label">Offset X</label>
-                <input type="number" class="form-input" id="shadowX" value="3" onchange="updateSelectedText()" />
-              </div>
-              <div style="flex:1;">
-                <label class="form-label">Offset Y</label>
-                <input type="number" class="form-input" id="shadowY" value="3" onchange="updateSelectedText()" />
-              </div>
-            </div>
-            <div class="form-row">
-              <div style="flex:1;">
-                <label class="form-label">Blur</label>
-                <input type="number" class="form-input" id="shadowBlur" value="4" min="0" max="50" onchange="updateSelectedText()" />
-              </div>
-              <div style="flex:1;">
-                <label class="form-label">Color</label>
-                <input type="color" id="shadowColor" value="#000000" onchange="updateSelectedText()" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Text Effects -->
-        <div class="form-group">
-          <label class="form-label">Text Effects</label>
-          <div class="effect-grid">
-            <div class="effect-item" onclick="toggleEffect('outline',this)" data-effect="outline">
-              🔲 Outline
-            </div>
-            <div class="effect-item" onclick="toggleEffect('glow',this)" data-effect="glow">
-              ✨ Glow
-            </div>
-            <div class="effect-item" onclick="toggleEffect('neon',this)" data-effect="neon">
-              💫 Neon
-            </div>
-            <div class="effect-item" onclick="toggleEffect('3d',this)" data-effect="3d">
-              🎯 3D Depth
-            </div>
-            <div class="effect-item" onclick="toggleEffect('gradient-text',this)" data-effect="gradient-text">
-              🌈 Gradient
-            </div>
-            <div class="effect-item" onclick="toggleEffect('stroke',this)" data-effect="stroke">
-              ✏️ Stroke
-            </div>
-          </div>
-          <div class="form-group" style="margin-top:8px;">
-            <label class="form-label">Outline/Stroke Width</label>
-            <input type="range" id="strokeWidth" min="0" max="20" value="2" oninput="updateSelectedText()" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Stroke Color</label>
-            <input type="color" id="strokeColor" value="#000000" onchange="updateSelectedText()" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Glow Color</label>
-            <input type="color" id="glowColor" value="#e94560" onchange="updateSelectedText()" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Glow Size</label>
-            <input type="range" id="glowSize" min="1" max="30" value="10" oninput="updateSelectedText()" />
-          </div>
-          <div class="form-group">
-            <label class="form-label">Gradient End Color</label>
-            <input type="color" id="textGradColor2" value="#00d2ff" onchange="updateSelectedText()" />
-          </div>
-        </div>
-
-        <!-- Opacity -->
-        <div class="form-group">
-          <label class="form-label">Opacity</label>
-          <input type="range" id="textOpacity" min="0" max="1" step="0.01" value="1" oninput="updateSelectedText()" />
-        </div>
-
-        <!-- Rotation -->
-        <div class="form-group">
-          <label class="form-label">Rotation (degrees)</label>
-          <div class="form-row">
-            <input type="range" id="textRotation" min="-180" max="180" value="0" oninput="updateSelectedText()" style="flex:1;" />
-            <input type="number" class="form-input form-input-sm" id="textRotationVal" value="0" onchange="updateSelectedText()" />
-          </div>
-        </div>
-
-        <!-- Position -->
-        <div class="form-group">
-          <label class="form-label">Position</label>
-          <div class="form-row">
-            <div style="flex:1;">
-              <label class="form-label">X</label>
-              <input type="number" class="form-input" id="textX" onchange="updateSelectedText()" />
-            </div>
-            <div style="flex:1;">
-              <label class="form-label">Y</label>
-              <input type="number" class="form-input" id="textY" onchange="updateSelectedText()" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Move Buttons -->
-        <div class="form-group">
-          <label class="form-label">Move Text</label>
-          <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:4px; max-width:150px; margin:0 auto;">
-            <div></div>
-            <button class="btn-icon" onclick="moveText(0,-10)" style="margin:0 auto;">⬆️</button>
-            <div></div>
-            <button class="btn-icon" onclick="moveText(-10,0)">⬅️</button>
-            <button class="btn-icon" onclick="centerText()" style="font-size:10px;" title="Center on Canvas">⊕</button>
-            <button class="btn-icon" onclick="moveText(10,0)">➡️</button>
-            <div></div>
-            <button class="btn-icon" onclick="moveText(0,10)">⬇️</button>
-            <div></div>
-          </div>
-        </div>
-
-        <!-- Width -->
-        <div class="form-group">
-          <label class="form-label">Max Width (0 = auto)</label>
-          <input type="number" class="form-input" id="textMaxWidth" value="0" min="0" onchange="updateSelectedText()" />
-        </div>
-      </div>
-    </div>
-
-    <!-- Image Properties -->
-    <div class="panel-section" id="imageProperties" style="display:none;">
-      <div class="panel-header" onclick="togglePanel(this.parentElement)">
-        <span class="panel-title">🖼️ Image Properties</span>
-        <span class="panel-toggle">▼</span>
-      </div>
-      <div class="panel-content">
-        <div class="form-group">
-          <label class="form-label">Position</label>
-          <div class="form-row">
-            <div style="flex:1;">
-              <label class="form-label">X</label>
-              <input type="number" class="form-input" id="imgX" onchange="updateSelectedImage()" />
-            </div>
-            <div style="flex:1;">
-              <label class="form-label">Y</label>
-              <input type="number" class="form-input" id="imgY" onchange="updateSelectedImage()" />
-            </div>
-          </div>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Size</label>
-          <div class="form-row">
-            <div style="flex:1;">
-              <label class="form-label">Width</label>
-              <input type="number" class="form-input" id="imgWidth" onchange="updateSelectedImage()" />
-            </div>
-            <div style="flex:1;">
-              <label class="form-label">Height</label>
-              <input type="number" class="form-input" id="imgHeight" onchange="updateSelectedImage()" />
-            </div>
-          </div>
-          <label style="font-size:11px; color:var(--text-muted); margin-top:4px; display:block;">
-            <input type="checkbox" id="imgLockRatio" checked="" /> Lock Aspect Ratio
-          </label>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Rotation</label>
-          <input type="range" id="imgRotation" min="-180" max="180" value="0" oninput="updateSelectedImage()" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Opacity</label>
-          <input type="range" id="imgOpacity" min="0" max="1" step="0.01" value="1" oninput="updateSelectedImage()" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Border Radius</label>
-          <input type="range" id="imgRadius" min="0" max="200" value="0" oninput="updateSelectedImage()" />
-        </div>
-        <div class="form-group" style="margin-top: 10px;">
-          <button class="btn btn-primary" onclick="openCropModal()" style="width:100%; justify-content:center;">✂️ Crop Image</button>
+    <!-- VIEWER VIEW -->
+    <section id="view-viewer" class="view">
+        <div id="viewer-connect-panel">
+            <h2>Remote Viewer</h2>
+            <p style="font-size:13px; opacity:0.7;">Enter the Camera ID shown on the host device's Network tab.</p>
+            <input type="text" id="viewer-peer-id" placeholder="Camera ID (e.g., abc-123-xyz)" />
+            <input type="password" id="viewer-password" placeholder="Password (if required)" />
+            <button class="primary" onclick="connectToCamera()" style="width:100%;">Connect to Camera</button>
         </div>
         
-        <div class="form-group">
-          <label class="form-label">Filters</label>
-          <div style="margin-bottom: 6px;">
-            <label class="form-label" style="text-transform:none;font-weight:400;font-size:10px;margin-bottom:2px;">Brightness</label>
-            <input type="range" id="imgBrightness" min="0" max="200" value="100" oninput="updateSelectedImage()" />
-          </div>
-          <div style="margin-bottom: 6px;">
-            <label class="form-label" style="text-transform:none;font-weight:400;font-size:10px;margin-bottom:2px;">Contrast</label>
-            <input type="range" id="imgContrast" min="0" max="200" value="100" oninput="updateSelectedImage()" />
-          </div>
-          <div style="margin-bottom: 6px;">
-            <label class="form-label" style="text-transform:none;font-weight:400;font-size:10px;margin-bottom:2px;">Saturation</label>
-            <input type="range" id="imgSaturation" min="0" max="200" value="100" oninput="updateSelectedImage()" />
-          </div>
-          <div style="margin-bottom: 6px;">
-            <label class="form-label" style="text-transform:none;font-weight:400;font-size:10px;margin-bottom:2px;">Hue</label>
-            <input type="range" id="imgHue" min="-180" max="180" value="0" oninput="updateSelectedImage()" />
-          </div>
-          <div style="margin-bottom: 6px;">
-            <label class="form-label" style="text-transform:none;font-weight:400;font-size:10px;margin-bottom:2px;">Blur</label>
-            <input type="range" id="imgBlur" min="0" max="20" value="0" oninput="updateSelectedImage()" />
-          </div>
+        <div id="viewer-video-panel" class="hidden">
+            <div class="viewer-stats">
+                <span><i class="fas fa-signal"></i> FPS: <strong id="viewer-fps">0</strong></span>
+                <span><i class="fas fa-desktop"></i> Res: <strong id="viewer-res">-</strong></span>
+            </div>
+            <div class="video-container">
+                <video id="remote-video" autoplay="" playsinline=""></video>
+            </div>
+            <div class="controls-grid">
+                <button onclick="captureSnapshot()"><i class="fas fa-camera"></i> Snap</button>
+                <button onclick="sendRemoteCommand('start_recording')"><i class="fas fa-circle" style="color:var(--danger-color)"></i> Rec Start</button>
+                <button onclick="sendRemoteCommand('stop_recording')"><i class="fas fa-square"></i> Rec Stop</button>
+                <button onclick="sendRemoteCommand('switch_camera')"><i class="fas fa-sync"></i> Switch Cam</button>
+                <button onclick="sendRemoteCommand('toggle_flash')"><i class="fas fa-bolt"></i> Flash</button>
+                <button onclick="toggleFullscreen('remote-video')"><i class="fas fa-expand"></i> Full</button>
+            </div>
+            <button onclick="disconnectViewer()" style="width:100%; background:var(--danger-color); color:white; border:none; margin-top:10px;">Disconnect</button>
         </div>
-      </div>
-    </div>
+    </section>
+</main>
 
-    <!-- Layers Panel -->
-    <div class="panel-section">
-      <div class="panel-header" onclick="togglePanel(this.parentElement)">
-        <span class="panel-title">📑 Layers</span>
-        <span class="panel-toggle">▼</span>
-      </div>
-      <div class="panel-content">
-        <div id="layersList"></div>
-      </div>
-    </div>
-
-    <!-- Export Settings -->
-    <div class="panel-section">
-      <div class="panel-header" onclick="togglePanel(this.parentElement)">
-        <span class="panel-title">💾 Export Settings</span>
-        <span class="panel-toggle">▼</span>
-      </div>
-      <div class="panel-content">
-        <div class="form-group">
-          <label class="form-label">Format</label>
-          <select class="form-select" id="exportFormat">
-            <option value="png">PNG (Lossless)</option>
-            <option value="jpeg">JPEG (Compressed)</option>
-            <option value="webp">WebP (Modern)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Quality: <span id="qualityVal">95</span>%</label>
-          <input type="range" id="exportQuality" min="10" max="100" value="95" oninput="document.getElementById('qualityVal').textContent=this.value" />
-        </div>
-        <div class="form-group">
-          <label class="form-label">Scale Factor</label>
-          <select class="form-select" id="exportScale">
-            <option value="1">1x (Original)</option>
-            <option value="2" selected="">2x (HD)</option>
-            <option value="3">3x (Ultra HD)</option>
-            <option value="4">4x (Maximum)</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Output Size: <span id="outputSize">2560 × 1440</span></label>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Toast Notification -->
-<div class="toast" id="toast"></div>
-
-<!-- Cover/Banner Modal -->
-<div class="modal-overlay" id="coverBannerModal">
-  <div class="modal">
-    <div class="modal-title">
-      📏 Cover &amp; Banner Sizes
-      <button class="btn-icon" onclick="closeCoverBannerModal()" style="margin-left: auto;">✕</button>
-    </div>
-    
-    <div class="size-presets">
-      <div class="size-preset" onclick="setCoverSize(2560, 1440, 'YouTube Channel Art', this)">
-        <div class="size-preset-name">🎬 YouTube Channel Art</div>
-        <div class="size-preset-dims">2560 × 1440 px</div>
-        <div class="size-preset-dims" style="margin-top: 4px; color: var(--accent);">16:9 (Safe area center)</div>
-      </div>
-      
-      <div class="size-preset" onclick="setCoverSize(820, 360, 'Facebook Cover', this)">
-        <div class="size-preset-name">📘 Facebook Cover</div>
-        <div class="size-preset-dims">820 × 360 px</div>
-        <div class="size-preset-dims" style="margin-top: 4px; color: var(--accent);">Wide format</div>
-      </div>
-      
-      <div class="size-preset" onclick="setCoverSize(1500, 500, 'Twitter/X Header', this)">
-        <div class="size-preset-name">🐦 Twitter (X) Header</div>
-        <div class="size-preset-dims">1500 × 500 px</div>
-        <div class="size-preset-dims" style="margin-top: 4px; color: var(--accent);">3:1 ratio</div>
-      </div>
-      
-      <div class="size-preset" onclick="setCoverSize(1584, 396, 'LinkedIn Banner', this)">
-        <div class="size-preset-name">💼 LinkedIn Banner</div>
-        <div class="size-preset-dims">1584 × 396 px</div>
-        <div class="size-preset-dims" style="margin-top: 4px; color: var(--accent);">Wide format</div>
-      </div>
-      
-      <div class="size-preset" onclick="setCoverSize(1080, 1080, 'Instagram Post', this)">
-        <div class="size-preset-name">📷 Instagram Post</div>
-        <div class="size-preset-dims">1080 × 1080 px</div>
-        <div class="size-preset-dims" style="margin-top: 4px; color: var(--accent);">1:1 square</div>
-      </div>
-      
-      <div class="size-preset" onclick="setCoverSize(1920, 600, 'Website Hero Banner', this)">
-        <div class="size-preset-name">🌐 Website Hero Banner</div>
-        <div class="size-preset-dims">1920 × 600 px</div>
-        <div class="size-preset-dims" style="margin-top: 4px; color: var(--accent);">Wide format</div>
-      </div>
-    </div>
-    
-    <div class="form-group" style="border-top: 1px solid var(--border); padding-top: 16px;">
-      <label class="form-label">Custom Size</label>
-      <div class="form-row">
-        <div style="flex: 1;">
-          <input type="number" class="form-input" id="customCoverWidth" placeholder="Width (px)" value="1920" />
-        </div>
-        <div style="flex: 1;">
-          <input type="number" class="form-input" id="customCoverHeight" placeholder="Height (px)" value="600" />
-        </div>
-        <button class="btn btn-primary" onclick="setCustomCoverSize()">Apply</button>
-      </div>
-    </div>
-    
-    <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeCoverBannerModal()">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- Crop Modal -->
-<div class="modal-overlay" id="cropModal" style="display:none; z-index: 1000;">
-  <div class="modal" style="width: auto; max-width: 90vw; background: var(--glass-bg); backdrop-filter: blur(16px);">
-    <div class="modal-header">
-      <h3 class="modal-title">✂️ Crop Image</h3>
-      <button class="modal-close" onclick="closeCropModal()">×</button>
-    </div>
-    <div class="modal-body" style="text-align: center; overflow: auto; max-height: 70vh;">
-      <p style="color: var(--text-secondary); margin-bottom: 10px;">Drag on the image to draw a crop box.</p>
-      <canvas id="cropCanvas" style="cursor: crosshair; background: #000; box-shadow: var(--shadow);" onmousedown="onCropMouseDown(event)" onmousemove="onCropMouseMove(event)" onmouseup="onCropMouseUp()" onmouseleave="onCropMouseUp()"></canvas>
-    </div>
-    <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeCropModal()">Cancel</button>
-      <button class="btn btn-primary" onclick="applyCrop()">Apply Crop</button>
-    </div>
-  </div>
-</div>
+<nav class="bottom-nav">
+    <button onclick="switchView('home')" class="nav-btn active"><i class="fas fa-home"></i>Home</button>
+    <button onclick="switchView('camera')" class="nav-btn"><i class="fas fa-camera"></i>Camera</button>
+    <button onclick="switchView('network')" class="nav-btn"><i class="fas fa-wifi"></i>Network</button>
+    <button onclick="switchView('recordings')" class="nav-btn"><i class="fas fa-folder"></i>Files</button>
+    <button onclick="switchView('settings')" class="nav-btn"><i class="fas fa-cog"></i>Settings</button>
+</nav>
 
 
 

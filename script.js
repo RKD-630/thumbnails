@@ -996,7 +996,7 @@ function setLoader(frac,label){ if(label) $('#loaderLabel').textContent=label;
 function hideLoader(){ $('#loader').hidden=true; }
 
 /* ================= EXPORT ================= */
-const expOpts={format:'pdf',scope:'all',pdfq:'high',size:'original',orient:'auto',zipq:'high'};
+const expOpts={format:'pdf',scope:'all',pdfq:'high',size:'original',orient:'auto',zipq:'high',uniformSize:false};
 function openExport(prefScope){
   if(!state.pages.length){ toast('Import some pages first','info'); return; }
   lastExport=null; expOpts.scope=(prefScope==='sel'&&state.selection.size)?'sel':'all';
@@ -1017,7 +1017,9 @@ function buildExportBody(){
       <div class="opt-group"><h5>PDF quality</h5><div class="seg-wide">
         ${['standard','high','maximum'].map(q=>`<button class="chip ${expOpts.pdfq===q?'on':''}" data-x="pdfq" data-v="${q}">${q[0].toUpperCase()+q.slice(1)}</button>`).join('')}</div></div>
       <div class="opt-group"><h5>Page size</h5><div class="seg-wide">
-        ${[['original','Original'],['a4','A4'],['letter','Letter'],['fit','Fit to content']].map(([v,l])=>`<button class="chip ${expOpts.size===v?'on':''}" data-x="size" data-v="${v}">${l}</button>`).join('')}</div></div>
+        ${[['original','Original'],['a4','A4'],['letter','Letter'],['fit','Fit to content']].map(([v,l])=>`<button class="chip ${expOpts.size===v?'on':''}" data-x="size" data-v="${v}">${l}</button>`).join('')}</div>
+        <div style="margin-top:10px;"><label style="display:flex;align-items:center;gap:8px;font-size:13.5px;color:var(--ink);cursor:pointer;font-weight:500;"><input type="checkbox" id="chkUniform" ${expOpts.uniformSize?'checked':''}> Force all pages to match first page size</label></div>
+      </div>
       <div class="opt-group" id="orientGroup" ${['original','fit'].includes(expOpts.size)?'hidden':''}><h5>Orientation</h5><div class="seg-wide">
         ${[['auto','Automatic'],['portrait','Portrait'],['landscape','Landscape']].map(([v,l])=>`<button class="chip ${expOpts.orient===v?'on':''}" data-x="orient" data-v="${v}">${l}</button>`).join('')}</div></div>
     </div>
@@ -1029,6 +1031,8 @@ function buildExportBody(){
     <div class="exp-prog" id="expProg" hidden><div class="bar striped"><i id="expBar"></i></div><div class="prog-label" id="expProgLabel"></div></div>`;
   $('#expBody').querySelectorAll('[data-x]').forEach(b=>b.addEventListener('click',()=>{
     expOpts[b.dataset.x]=b.dataset.v; buildExportBody(); }));
+  const chk = $('#chkUniform');
+  if(chk) chk.addEventListener('change', (e) => { expOpts.uniformSize = e.target.checked; });
   $('#btnGenerate').addEventListener('click',generateExport);
 }
 async function canvasJpeg(cv,q){ return new Promise(res=>cv.toBlob(b=>res(b),'image/jpeg',q)); }
@@ -1043,15 +1047,19 @@ async function generateExport(){
       const doc=await PDFLib.PDFDocument.create();
       doc.setTitle('Rkrid document'); doc.setCreator('Rkrid — local PDF studio');
       const baseW={standard:1240,high:1750,maximum:2400}[expOpts.pdfq], q={standard:.78,high:.88,maximum:.95}[expOpts.pdfq];
+      let uniformW, uniformH;
       for(let i=0;i<n;i++){
         setP(i/n*0.9,`Rendering page ${i+1} of ${n}…`); await tick();
         const cv=await composePage(pages[i],baseW);
         const iw=cv.width*0.75, ih=cv.height*0.75;
         let pw=iw, ph=ih;
+        if(i===0 && expOpts.uniformSize) { uniformW=iw; uniformH=ih; }
         if(expOpts.size==='a4'||expOpts.size==='letter'){
           const base=expOpts.size==='a4'?[595.28,841.89]:[612,792];
           const land = expOpts.orient==='landscape'||(expOpts.orient==='auto'&&iw>ih);
           pw=land?base[1]:base[0]; ph=land?base[0]:base[1];
+        } else if(expOpts.uniformSize && uniformW) {
+          pw=uniformW; ph=uniformH;
         }
         const jpg=await canvasJpeg(cv,q);
         const img=await doc.embedJpg(await jpg.arrayBuffer());

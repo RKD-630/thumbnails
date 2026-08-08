@@ -1,161 +1,283 @@
 <!DOCTYPE html><html lang="en"><head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Mobile Web IP Camera</title>
-    <!-- External Libraries -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-    
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Bindery — PDF &amp; Image Studio</title>
+<link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'&gt;&lt;rect width='32' height='32' rx='7' fill='%232743e3'/&gt;&lt;path d='M9 22V9h9a4 4 0 0 1 0 8h-9m4-8v14' stroke='white' stroke-width='2.6' fill='none' stroke-linecap='round'/&gt;&lt;/svg&gt;" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&amp;family=IBM+Plex+Mono:wght@500;600&amp;family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&amp;family=Montserrat:ital,wght@0,400;0,700;1,400&amp;family=Open+Sans:ital,wght@0,400;0,700;1,400&amp;family=Roboto:ital,wght@0,400;0,700;1,400&amp;display=swap" rel="stylesheet" />
+
+
+
+
 <link rel="stylesheet" href="style.css" /></head>
 <body>
 
-<header>
-    <h1><i class="fas fa-video"></i> Web IP Cam</h1>
-    <button id="theme-toggle" onclick="toggleTheme()" style="padding: 8px; border: none; background: transparent;"><i class="fas fa-moon"></i></button>
+<!-- ================= TOPBAR ================= -->
+<header id="topbar">
+  <div class="brand">
+    <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 19V5h7.5a3.5 3.5 0 0 1 0 7H7m3.5-7v14"/></svg></span>
+    <div><div class="brand-name">Bindery</div><div class="brand-tag">Local PDF &amp; Image Studio</div></div>
+  </div>
+  <div class="top-mid">
+    <button class="icon-btn" id="btnUndo" aria-label="Undo" disabled=""></button>
+    <button class="icon-btn" id="btnRedo" aria-label="Redo" disabled=""></button>
+    <button class="btn btn-sec btn-sm" id="btnTopPgNum" style="margin-right:8px;padding:0 8px"></button>
+    <div class="seg" role="group" aria-label="View">
+      <button id="viewGrid" class="on" aria-label="Grid view"></button>
+      <button id="viewList" aria-label="List view"></button>
+    </div>
+    <div class="seg" role="group" aria-label="Zoom" id="zoomControls">
+      <button id="zoomOut" aria-label="Zoom Out" disabled=""></button>
+      <button id="zoomIn" aria-label="Zoom In" disabled=""></button>
+    </div>
+  </div>
+  <div class="top-right">
+    <button class="btn btn-sec btn-sm" id="btnAdd"></button>
+    <button class="btn btn-primary btn-sm" id="btnExport"></button>
+  </div>
 </header>
 
-<main>
-    <!-- HOME VIEW (Dashboard) -->
-    <section id="view-home" class="view active">
-        <div class="dashboard-card">
-            <h2 style="margin-top:0;">Dashboard</h2>
-            <div class="stat-grid">
-                <div class="stat"><span>Camera Status</span><strong id="stat-status" class="offline">Offline</strong></div>
-                <div class="stat"><span>Connected Users</span><strong id="stat-users">0</strong></div>
-                <div class="stat"><span>Resolution</span><strong id="stat-res">-</strong></div>
-                <div class="stat"><span>FPS</span><strong id="stat-fps">0</strong></div>
-                <div class="stat"><span>Bitrate</span><strong id="stat-bitrate">-</strong></div>
-                <div class="stat"><span>Recording</span><strong id="stat-rec" style="color:inherit;">OFF</strong></div>
-                <div class="stat"><span>Battery</span><strong id="stat-battery">-</strong></div>
-                <div class="stat"><span>Temperature</span><strong>Normal</strong></div>
-            </div>
+<!-- ================= EMPTY STATE ================= -->
+<section id="emptyState">
+  <div>
+    <div class="eyebrow">Merge · Convert · Edit · Export</div>
+    <h1>Drop your PDFs &amp; images <em>on the desk.</em></h1>
+    <p class="lede">Bindery turns PDFs, photos and scans into one clean, ordered document. Reorder pages, crop, enhance, add text, erase what you don't want — then export as PDF or ZIP.</p>
+    <div class="cta-row">
+      <button class="btn btn-primary" id="btnImportMain"></button>
+      <button class="btn btn-sec" id="btnSample"></button>
+    </div>
+    <div class="fmt-row" aria-label="Supported formats">
+      <span class="fmt">PDF</span><span class="fmt">JPG</span><span class="fmt">PNG</span><span class="fmt">WEBP</span>
+      <span class="fmt">GIF</span><span class="fmt">BMP</span><span class="fmt">TIFF</span><span class="fmt">SVG</span><span class="fmt">HEIC*</span>
+    </div>
+    <p class="privacy-line" id="privacyLine"></p>
+    <div class="flow-steps">
+      <span class="fstep"><b>1</b>Import</span><span class="fstep"><b>2</b>Organize</span>
+      <span class="fstep"><b>3</b>Edit</span><span class="fstep"><b>4</b>Export</span>
+    </div>
+  </div>
+  <div class="tray-zone">
+    <div class="tray-drop" id="trayDrop" role="button" tabindex="0" aria-label="Import files: click or drop files here">
+      <div class="paper-stack" aria-hidden="true">
+        <div class="sheet s1"></div><div class="sheet s2"></div>
+        <div class="sheet s3">
+          <span class="stamp">A4 · READY</span>
+          <div class="sk t"></div><div class="sk a"></div><div class="sk w90"></div><div class="sk w80"></div>
+          <div class="sk w90"></div><div class="sk w60"></div><div class="sk w80"></div>
         </div>
-    </section>
+      </div>
+      <span class="tray-hint">Click or drop files here</span>
+    </div>
+    <span class="float-stamp f1">PDF → IMG</span><span class="float-stamp f2">MERGE</span>
+    <span class="float-stamp f3">CROP + ENHANCE</span><span class="float-stamp f4">IMG → PDF</span>
+  </div>
+</section>
 
-    <!-- CAMERA VIEW -->
-    <section id="view-camera" class="view">
-        <div class="video-container">
-            <video id="local-video" autoplay="" playsinline="" muted=""></video>
-            <div id="recording-indicator" class="hidden">🔴 REC <span id="rec-timer">00:00</span></div>
-        </div>
-        <div class="controls-grid">
-            <button onclick="startCamera()"><i class="fas fa-play"></i> Start</button>
-            <button onclick="stopCamera()"><i class="fas fa-stop"></i> Stop</button>
-            <button onclick="pauseStream()"><i class="fas fa-pause"></i> Pause</button>
-            <button onclick="resumeStream()"><i class="fas fa-forward"></i> Resume</button>
-            <button onclick="switchCamera()"><i class="fas fa-sync"></i> Switch</button>
-            <button onclick="toggleTorch()"><i class="fas fa-bolt"></i> Flash</button>
-            <button onclick="toggleMute()"><i class="fas fa-microphone-slash"></i> Mute</button>
-            <button onclick="toggleQuality()"><i class="fas fa-hd"></i> HD/SD</button>
-            <button onclick="rotateCamera()"><i class="fas fa-redo"></i> Rotate</button>
-            <button onclick="toggleRecording()"><i class="fas fa-circle" style="color:var(--danger-color)"></i> Record</button>
-            <button onclick="captureLocalSnapshot()"><i class="fas fa-camera"></i> Snap</button>
-            <button onclick="toggleFullscreen('local-video')"><i class="fas fa-expand"></i> Full</button>
-        </div>
-    </section>
-
-    <!-- NETWORK VIEW -->
-    <section id="view-network" class="view">
-        <div class="network-card">
-            <h2>Camera Server</h2>
-            <div class="status-badge offline" id="server-status">Stopped</div>
-            <br />
-            <button id="btn-start-server" class="primary" onclick="startServer()" style="width:100%; margin-top:10px;">Start Camera Server</button>
-            
-            <div id="server-info" class="hidden">
-                <div class="info-row"><span>Local IP Address:</span> <strong id="display-mock-ip">192.168.1.x</strong></div>
-                <div class="info-row"><span>Port:</span> <strong>8080</strong></div>
-                <div class="info-row"><span>Camera ID:</span> <strong id="display-peer-id" style="font-size:12px; word-break:break-all;">Generating...</strong></div>
-                <div class="info-row"><span>Status:</span> <strong class="online">Online</strong></div>
-                
-                <div id="qrcode" class="qr-container"></div>
-                <p class="hint">Scan QR code with another device on the same WiFi to view the live stream instantly.</p>
-                
-                <button onclick="switchView('viewer')" style="width:100%; margin-top:15px;"><i class="fas fa-eye"></i> Open Viewer Mode</button>
-            </div>
-        </div>
-    </section>
-
-    <!-- RECORDINGS VIEW -->
-    <section id="view-recordings" class="view">
-        <h2>File Manager</h2>
-        <div id="recordings-list" class="recordings-list">
-            <p style="opacity:0.6; text-align:center;">No recordings yet.</p>
-        </div>
-    </section>
-
-    <!-- SETTINGS VIEW -->
-    <section id="view-settings" class="view">
-        <h2>Settings</h2>
-        <div class="settings-form">
-            <label>Default Resolution
-                <select id="setting-resolution">
-                    <option value="240p">240p (Low)</option>
-                    <option value="360p">360p</option>
-                    <option value="480p">480p (SD)</option>
-                    <option value="720p" selected="">720p (HD)</option>
-                    <option value="1080p">1080p (FHD)</option>
-                </select>
-            </label>
-            <label>Default Camera
-                <select id="setting-camera">
-                    <option value="environment">Rear Camera</option>
-                    <option value="user">Front Camera</option>
-                </select>
-            </label>
-            <label>Password Protection (Optional)
-                <input type="password" id="setting-password" placeholder="Leave blank for no password" />
-            </label>
-            <label class="checkbox-label">
-                <input type="checkbox" id="setting-audio" checked="" /> Audio Enabled
-            </label>
-            <label class="checkbox-label">
-                <input type="checkbox" id="setting-wake-lock" checked="" /> Keep Screen On (Wake Lock)
-            </label>
-            <button class="primary" onclick="saveSettings()" style="width:100%; margin-top:10px;">Save Settings</button>
-        </div>
-    </section>
-
-    <!-- VIEWER VIEW -->
-    <section id="view-viewer" class="view">
-        <div id="viewer-connect-panel">
-            <h2>Remote Viewer</h2>
-            <p style="font-size:13px; opacity:0.7;">Enter the Camera ID shown on the host device's Network tab.</p>
-            <input type="text" id="viewer-peer-id" placeholder="Camera ID (e.g., abc-123-xyz)" />
-            <input type="password" id="viewer-password" placeholder="Password (if required)" />
-            <button class="primary" onclick="connectToCamera()" style="width:100%;">Connect to Camera</button>
-        </div>
-        
-        <div id="viewer-video-panel" class="hidden">
-            <div class="viewer-stats">
-                <span><i class="fas fa-signal"></i> FPS: <strong id="viewer-fps">0</strong></span>
-                <span><i class="fas fa-desktop"></i> Res: <strong id="viewer-res">-</strong></span>
-            </div>
-            <div class="video-container">
-                <video id="remote-video" autoplay="" playsinline=""></video>
-            </div>
-            <div class="controls-grid">
-                <button onclick="captureSnapshot()"><i class="fas fa-camera"></i> Snap</button>
-                <button onclick="sendRemoteCommand('start_recording')"><i class="fas fa-circle" style="color:var(--danger-color)"></i> Rec Start</button>
-                <button onclick="sendRemoteCommand('stop_recording')"><i class="fas fa-square"></i> Rec Stop</button>
-                <button onclick="sendRemoteCommand('switch_camera')"><i class="fas fa-sync"></i> Switch Cam</button>
-                <button onclick="sendRemoteCommand('toggle_flash')"><i class="fas fa-bolt"></i> Flash</button>
-                <button onclick="toggleFullscreen('remote-video')"><i class="fas fa-expand"></i> Full</button>
-            </div>
-            <button onclick="disconnectViewer()" style="width:100%; background:var(--danger-color); color:white; border:none; margin-top:10px;">Disconnect</button>
-        </div>
-    </section>
+<!-- ================= WORKSPACE ================= -->
+<main id="workspace" hidden="">
+  <div class="ws-head">
+    <h2>Your document</h2>
+    <span id="docMeta" class="mono"></span>
+    <span class="spacer"></span>
+    <label class="selall"><span class="pcheck"><input type="checkbox" id="selAll" /><span class="box"></span></span>Select all</label>
+  </div>
+  <p class="ws-tip"><span class="desk-only">Drag cards (or the ⠿ handle) to reorder · drop a file onto a page to replace it · </span>Long-press a card on touch to drag.</p>
+  <div id="pageArea" class="grid" role="list" aria-label="Document pages"></div>
 </main>
 
-<nav class="bottom-nav">
-    <button onclick="switchView('home')" class="nav-btn active"><i class="fas fa-home"></i>Home</button>
-    <button onclick="switchView('camera')" class="nav-btn"><i class="fas fa-camera"></i>Camera</button>
-    <button onclick="switchView('network')" class="nav-btn"><i class="fas fa-wifi"></i>Network</button>
-    <button onclick="switchView('recordings')" class="nav-btn"><i class="fas fa-folder"></i>Files</button>
-    <button onclick="switchView('settings')" class="nav-btn"><i class="fas fa-cog"></i>Settings</button>
-</nav>
+<!-- ================= BULK BAR ================= -->
+<div id="bulkBar" hidden="">
+  <span class="bb-count" id="bulkCount">0 selected</span>
+  <button class="bb-btn" id="bulkExport"></button>
+  <button class="bb-btn" id="bulkLeft" aria-label="Move selected left"></button>
+  <button class="bb-btn" id="bulkRight" aria-label="Move selected right"></button>
+  <button class="bb-btn danger" id="bulkRemove"></button>
+  <button class="bb-btn" id="bulkClear" aria-label="Clear selection"></button>
+</div>
 
+<!-- ================= MOBILE BAR ================= -->
+<nav id="mobilebar" aria-label="Main actions"><div class="mb-grid" style="grid-template-columns:repeat(6,1fr)">
+  <button class="mb-btn" id="mbPages"></button>
+  <button class="mb-btn" id="mbAdd"></button>
+  <button class="mb-btn" id="mbTools"></button>
+  <button class="mb-btn" id="mbAdjust"></button>
+  <button class="mb-btn" id="mbText"></button>
+  <button class="mb-btn primary" id="mbExport"></button>
+</div></nav>
 
+<!-- ================= EDITOR ================= -->
+<section id="editor" hidden="" aria-label="Page editor">
+  <div class="ed-top">
+    <button class="icon-btn" id="edBack" aria-label="Back to all pages"></button>
+    <div class="ed-title"><b id="edTitle">Page</b><span id="edSub"></span></div>
+    <div class="ed-nav">
+      <button class="icon-btn" id="edPrev" aria-label="Previous page"></button>
+      <button class="icon-btn" id="edNext" aria-label="Next page"></button>
+    </div>
+    <button class="icon-btn" id="edUndo" aria-label="Undo"></button>
+    <button class="icon-btn" id="edRedo" aria-label="Redo"></button>
+    <button class="btn btn-primary btn-sm" id="edDone"></button>
+  </div>
+  <div class="ed-chips" id="edChips"></div>
+  <div class="ed-body">
+    <div class="ed-rail" id="edRail" aria-label="Pages"></div>
+    <div class="ed-stage" id="edStage">
+      <div id="canvasWrap">
+        <canvas id="mainCanvas"></canvas>
+        <div id="layer" data-tool="">
+          <canvas id="eraseCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+    <aside class="ed-panel" id="edPanel">
+      <div class="p-sec" id="secOrder">
+        <h4>Page order</h4>
+        <div class="order-row">
+          <button class="btn btn-sec btn-sm" id="ordLeft"></button>
+          <span class="pos" id="ordPos">1 / 1</span>
+          <button class="btn btn-sec btn-sm" id="ordRight"></button>
+        </div>
+      </div>
+      <div class="p-sec" id="secTools">
+        <h4>Tools</h4>
+        <div class="tool-grid">
+          <button class="tool-btn" id="toolCrop" data-tool="crop"></button>
+          <button class="tool-btn" id="toolText" data-tool="text"></button>
+          <button class="tool-btn" id="toolErase" data-tool="erase"></button>
+          <button class="tool-btn" id="toolPgNum" data-tool="pgnum"></button>
+        </div>
+        <div class="order-row" style="margin-top:10px">
+          <button class="btn btn-sec btn-sm" id="btnEdReplace" style="flex:1"></button>
+        </div>
+        <div class="order-row" style="margin-top:7px">
+          <button class="btn btn-sec btn-sm" id="btnEdDup" style="flex:1"></button>
+          <button class="btn btn-sec btn-sm danger" id="btnEdRemove" style="flex:1;color:var(--danger)"></button>
+        </div>
+      </div>
+      <div class="p-sec" id="secAdjust"></div>
+      <div class="p-sec" id="secCrop" hidden="">
+        <h4>Crop</h4>
+        <div class="presets" id="cropPresets"></div>
+        <div class="order-row" style="margin-bottom:8px">
+          <button class="btn btn-sec btn-sm" id="cropRotL" style="flex:1" title="Rotate left" aria-label="Rotate left"></button>
+          <button class="btn btn-sec btn-sm" id="cropRotR" style="flex:1" title="Rotate right" aria-label="Rotate right"></button>
+        </div>
+        <div class="order-row">
+          <button class="btn btn-primary btn-sm" id="cropApply" style="flex:1"></button>
+          <button class="btn btn-sec btn-sm" id="cropCancel">Cancel</button>
+          <button class="btn btn-ghost btn-sm" id="cropReset">Reset</button>
+        </div>
+      </div>
+      <div class="p-sec" id="secText" hidden="">
+        <h4>Text</h4>
+        <div id="textContent"></div>
+      </div>
+      <div class="p-sec" id="secPgNum" hidden="">
+        <h4>Page Numbers</h4>
+        <div class="ctl-row">
+          <label>Mode</label>
+          <select id="pnMode" style="flex:1" class="inp">
+            <option value="auto">Automatic</option>
+            <option value="manual">Manual</option>
+          </select>
+        </div>
+        <div class="ctl-row" id="pnFormatRow" hidden="">
+          <label>Format</label>
+          <select id="pnFormat" style="flex:1" class="inp">
+            <option value="Page {n}">Page 1</option>
+            <option value="Page {n} of {t}">Page 1 of 5</option>
+            <option value="- {n} -">- 1 -</option>
+            <option value="{n}">1</option>
+            <option value="{f} - {n}">Filename - 1</option>
+          </select>
+        </div>
+        <div class="ctl-row">
+          <label>Align</label>
+          <div class="seg-mini">
+            <button id="pnAl" aria-label="Align left"></button>
+            <button id="pnAc" aria-label="Align center" class="on"></button>
+            <button id="pnAr" aria-label="Align right"></button>
+          </div>
+        </div>
+        <div class="ctl-row">
+          <label>Position</label>
+          <select id="pnPos" style="flex:1" class="inp">
+            <option value="bottom">Bottom</option>
+            <option value="top">Top</option>
+          </select>
+        </div>
+        <div class="ctl-row">
+          <label>Margin</label>
+          <input type="range" id="pnMargin" min="1" max="25" value="5" style="flex:1" />
+          <span class="adj-val" id="pnMarginVal" style="width:28px">5%</span>
+        </div>
+        <div class="ctl-row">
+          <label>Nudge</label>
+          <div class="seg-mini">
+            <button id="pnMvU" aria-label="Up"></button>
+            <button id="pnMvD" aria-label="Down"></button>
+            <button id="pnMvL" aria-label="Left"></button>
+            <button id="pnMvR" aria-label="Right"></button>
+          </div>
+        </div>
+        <div class="ctl-row">
+          <label>Color</label>
+          <input type="color" id="pnColor" value="#171b26" style="width:30px;height:30px;padding:0;border:none;cursor:pointer" />
+        </div>
+        <div class="ctl-row">
+          <label>Shadow</label>
+          <div style="display:flex;align-items:center;gap:8px">
+            <input type="color" id="pnShadow" value="#ffffff" style="width:30px;height:30px;padding:0;border:none;cursor:pointer" />
+            <button class="btn btn-ghost btn-sm" id="pnShadowClear" style="padding:0 6px">Clear</button>
+          </div>
+        </div>
+        <div class="order-row" style="margin-top:10px">
+          <button class="btn btn-primary btn-sm" id="pnApplyAll" style="flex:1">Apply All</button>
+          <button class="btn btn-sec btn-sm" id="pnApplySel" style="flex:1">Selected</button>
+        </div>
+        <p class="panel-hint" style="margin-top:10px;font-size:12px;color:var(--ink3);line-height:1.4">Added as text boxes. You can edit them later using the Text tool.</p>
+      </div>
+      <div class="p-sec" id="secErase" hidden="">
+        <h4>Erase</h4>
+        <div id="eraseContent"></div>
+      </div>
+    </aside>
+  </div>
+</section>
 
+<!-- ================= EXPORT MODAL ================= -->
+<div class="overlay" id="exportModal" hidden=""><div class="modal" role="dialog" aria-modal="true" aria-label="Export">
+  <div class="modal-h"><h3 id="expTitle">Save / Export</h3><button class="icon-btn" data-close="" aria-label="Close"></button></div>
+  <div class="modal-b" id="expBody"></div>
+</div></div>
+
+<!-- ================= REPLACE PICKER ================= -->
+<div class="overlay" id="pickerModal" hidden=""><div class="modal" role="dialog" aria-modal="true" aria-label="Choose pages">
+  <div class="modal-h"><h3>Replace with…</h3><button class="icon-btn" data-close="" aria-label="Close"></button></div>
+  <div class="modal-b">
+    <p style="font-size:13.5px;color:var(--ink2);margin-bottom:12px">This PDF has several pages. Pick which one(s) should take the page's place.</p>
+    <div id="pickerGrid"></div>
+  </div>
+  <div class="modal-f">
+    <label class="selall" style="margin-right:auto"><span class="pcheck"><input type="checkbox" id="pickAll" checked="" /><span class="box"></span></span>All pages</label>
+    <button class="btn btn-ghost" data-close="">Cancel</button>
+    <button class="btn btn-primary" id="pickConfirm"></button>
+  </div>
+</div></div>
+
+<!-- hosts -->
+<div id="sheetHost" hidden=""></div>
+<div id="toasts" aria-live="polite"></div>
+<div id="loader" hidden=""><div class="loader-card"><div class="spinner"></div><h4 id="loaderLabel">Working…</h4><div class="bar striped"><i id="loaderBar"></i></div></div></div>
+<div id="dropVeil" hidden=""><div class="inner">Drop files to import ↓</div></div>
+
+<input type="file" id="fileImport" multiple="" hidden="" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.bmp,.tif,.tiff,.svg,.heic,.heif,application/pdf,image/*" />
+<input type="file" id="fileReplace" multiple="" hidden="" accept=".pdf,.jpg,.jpeg,.png,.webp,.gif,.bmp,.tif,.tiff,.svg,.heic,.heif,application/pdf,image/*" />
+<input type="file" id="fileCamera" hidden="" accept="image/*" capture="environment" />
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="script.js"></script></body></html>

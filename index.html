@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="en"><head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Bindery — PDF &amp; Image Studio</title>
+<title>Rkrid — PDF &amp; Image Studio</title>
 <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'&gt;&lt;rect width='32' height='32' rx='7' fill='%232743e3'/&gt;&lt;path d='M9 22V9h9a4 4 0 0 1 0 8h-9m4-8v14' stroke='white' stroke-width='2.6' fill='none' stroke-linecap='round'/&gt;&lt;/svg&gt;" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="" />
@@ -17,12 +17,11 @@
 <header id="topbar">
   <div class="brand">
     <span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M7 19V5h7.5a3.5 3.5 0 0 1 0 7H7m3.5-7v14"/></svg></span>
-    <div><div class="brand-name">Bindery</div><div class="brand-tag">Local PDF &amp; Image Studio</div></div>
+    <div><div class="brand-name" style="color:var(--accent)">Rkrid</div><div class="brand-tag">Local PDF &amp; Image Studio</div></div>
   </div>
   <div class="top-mid">
     <button class="icon-btn" id="btnUndo" aria-label="Undo" disabled=""></button>
     <button class="icon-btn" id="btnRedo" aria-label="Redo" disabled=""></button>
-    <button class="btn btn-sec btn-sm" id="btnTopPgNum" style="margin-right:8px;padding:0 8px"></button>
     <div class="seg" role="group" aria-label="View">
       <button id="viewGrid" class="on" aria-label="Grid view"></button>
       <button id="viewList" aria-label="List view"></button>
@@ -33,6 +32,7 @@
     </div>
   </div>
   <div class="top-right">
+    <button class="icon-btn" id="btnThemeToggle" aria-label="Toggle Theme" title="Toggle Dark/Light Mode"></button>
     <button class="btn btn-sec btn-sm" id="btnAdd"></button>
     <button class="btn btn-primary btn-sm" id="btnExport"></button>
   </div>
@@ -43,7 +43,7 @@
   <div>
     <div class="eyebrow">Merge · Convert · Edit · Export</div>
     <h1>Drop your PDFs &amp; images <em>on the desk.</em></h1>
-    <p class="lede">Bindery turns PDFs, photos and scans into one clean, ordered document. Reorder pages, crop, enhance, add text, erase what you don't want — then export as PDF or ZIP.</p>
+    <p class="lede">Rkrid turns PDFs, photos and scans into one clean, ordered document. Reorder pages, crop, enhance, add text, erase what you don't want — then export as PDF or ZIP.</p>
     <div class="cta-row">
       <button class="btn btn-primary" id="btnImportMain"></button>
       <button class="btn btn-sec" id="btnSample"></button>

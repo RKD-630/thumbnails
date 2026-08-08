@@ -66,14 +66,14 @@ const FONT_PRELOAD=FONTS.filter(f=>!['Arial','Helvetica','Times New Roman','Geor
 function regSrc(src){ const id='s'+(++srcSeq); src.id=id; sources.set(id,src); return id; }
 const getSrc=id=>sources.get(id);
 function makePage(srcId,w,h,meta){ return {id:uid(),srcId,w,h,ptype:meta.ptype,fileName:meta.fileName,tag:meta.tag,
-  crop:null,bright:0,contrast:0,dark:0,texts:[],erasures:[],v:0,rot:0}; }
+  crop:null,bright:0,contrast:0,dark:0,hue:0,texts:[],erasures:[],v:0,rot:0}; }
 const currentPage=()=>state.pages.find(p=>p.id===state.editingId)||null;
 const idxOf=id=>state.pages.findIndex(p=>p.id===id);
 const cropOf=p=>p.crop||{x:0,y:0,w:1,h:1};
 
 /* ================= HISTORY ================= */
 function serializePages(){ return JSON.stringify(state.pages.map(p=>({id:p.id,srcId:p.srcId,w:p.w,h:p.h,ptype:p.ptype,
-  fileName:p.fileName,tag:p.tag,crop:p.crop,bright:p.bright,contrast:p.contrast,dark:p.dark,texts:p.texts,erasures:p.erasures,rot:p.rot}))); }
+  fileName:p.fileName,tag:p.tag,crop:p.crop,bright:p.bright,contrast:p.contrast,dark:p.dark,hue:p.hue,texts:p.texts,erasures:p.erasures,rot:p.rot}))); }
 function pushHistory(){ const snap=serializePages(); if(hist.stack[hist.i]===snap) return;
   hist.stack=hist.stack.slice(0,hist.i+1); hist.stack.push(snap); if(hist.stack.length>80) hist.stack.shift();
   hist.i=hist.stack.length-1; updateHistUI(); }
@@ -184,7 +184,7 @@ async function composePage(p,outW,{text=true,erase=true}={}){
   const cv=document.createElement('canvas'); cv.width=W; cv.height=H;
   const ctx=cv.getContext('2d'); ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
   const useFilter='filter' in ctx; ctx.save();
-  if(useFilter&&(p.bright||p.contrast)) ctx.filter=`brightness(${1+p.bright/100}) contrast(${1+p.contrast/100})`;
+  if(useFilter&&(p.bright||p.contrast||p.hue)) ctx.filter=`brightness(${1+p.bright/100}) contrast(${1+p.contrast/100}) hue-rotate(${p.hue*1.8}deg)`;
   ctx.drawImage(base,crop.x*p.w*s,crop.y*p.h*s,cw*s,ch*s,0,0,W,H); ctx.restore();
   if(!useFilter&&(p.bright||p.contrast)) pixelAdjust(ctx,W,H,p.bright,p.contrast);
   if(p.dark>0){ ctx.fillStyle=`rgba(10,12,18,${p.dark/100*0.88})`; ctx.fillRect(0,0,W,H); }
@@ -640,26 +640,62 @@ function resetCrop(){ const p=currentPage(); if(!p) return;
   if(p.crop){ p.crop=null; pushHistory(); markDirty([p]); } setTool(''); }
 
 /* ---- adjustments ---- */
+let activeAdj = 'bright';
 function buildAdjust(){
-  const rows=[['bright','sun','Brightness'],['contrast','contrast','Contrast'],['dark','moon','Darkness']];
-  $('#secAdjust').innerHTML='<h4>Adjust</h4>'+rows.map(([k,icn,lab])=>`
-    <div class="adj-row"><div class="adj-head">
-      <span class="adj-label">${ic(icn)}${lab}</span>
-      <span class="adj-val" id="adj-${k}-val">0</span>
-      <button class="mini-reset" data-k="${k}">Reset</button></div>
-      <input type="range" min="-100" max="100" value="0" step="1" id="adj-${k}" aria-label="${lab}">
-    </div>`).join('');
-  rows.forEach(([k])=>{ const r=$('#adj-'+k);
-    r.addEventListener('input',()=>{ const p=currentPage(); if(!p) return;
-      p[k]=+r.value; $('#adj-'+k+'-val').textContent=(r.value>0?'+':'')+r.value;
-      renderEditorCanvas(); markDirty([p]); });
-    r.addEventListener('change',()=>pushHistory()); });
-  $$('#secAdjust .mini-reset').forEach(b=>b.addEventListener('click',()=>{ const p=currentPage(); if(!p) return;
-    p[b.dataset.k]=0; syncAdjust(); renderEditorCanvas(); markDirty([p]); pushHistory(); }));
+  const modes=[['bright','sun','Brightness'],['contrast','contrast','Contrast'],['dark','moon','Darkness'],['hue','sparkle','Hue']];
+  $('#secAdjust').innerHTML='<h4>Adjust</h4>' +
+    `<div class="adj-modes" style="display:flex;gap:8px;margin-bottom:16px;">` +
+      modes.map(([k,icn,lab])=>`<button class="btn btn-sec btn-sm adj-mode-btn" data-mode="${k}" style="flex:1;padding:0;flex-direction:column;height:54px;font-size:11px;gap:2px;">${ic(icn)} ${lab}</button>`).join('') +
+    `</div>` +
+    `<div class="adj-row" style="margin-bottom:0;">
+      <div class="adj-head">
+        <span class="adj-label" id="adj-main-label" style="display:flex;align-items:center;gap:6px;"></span>
+        <span class="adj-val" id="adj-main-val">0</span>
+        <button class="mini-reset" id="adj-main-reset">Reset</button>
+      </div>
+      <input type="range" min="-100" max="100" value="0" step="1" id="adj-main-slider">
+    </div>`;
+
+  const slider = $('#adj-main-slider');
+  $$('.adj-mode-btn').forEach(b => {
+    b.addEventListener('click', () => { activeAdj = b.dataset.mode; syncAdjust(); });
+  });
+
+  slider.addEventListener('input', () => {
+    const p = currentPage(); if(!p) return;
+    p[activeAdj] = +slider.value;
+    $('#adj-main-val').textContent = (slider.value > 0 ? '+' : '') + slider.value;
+    renderEditorCanvas(); markDirty([p]);
+  });
+  slider.addEventListener('change', () => pushHistory());
+
+  $('#adj-main-reset').addEventListener('click', () => {
+    const p = currentPage(); if(!p) return;
+    p[activeAdj] = 0;
+    syncAdjust(); renderEditorCanvas(); markDirty([p]); pushHistory();
+  });
 }
-function syncAdjust(){ const p=currentPage(); if(!p) return;
-  ['bright','contrast','dark'].forEach(k=>{ $('#adj-'+k).value=p[k];
-    $('#adj-'+k+'-val').textContent=(p[k]>0?'+':'')+p[k]; }); }
+function syncAdjust(){
+  const p = currentPage(); if(!p) return;
+  const modes = [['bright','sun','Brightness'],['contrast','contrast','Contrast'],['dark','moon','Darkness'],['hue','sparkle','Hue']];
+  
+  $$('.adj-mode-btn').forEach(b => {
+    const isAct = b.dataset.mode === activeAdj;
+    b.classList.toggle('btn-sec', !isAct);
+    b.classList.toggle('btn-primary', isAct);
+  });
+  
+  const modeData = modes.find(m => m[0] === activeAdj);
+  if(modeData){
+    $('#adj-main-label').innerHTML = `${ic(modeData[1])} ${modeData[2]}`;
+    const svg = $('#adj-main-label svg');
+    if(svg){ svg.style.width = '15px'; svg.style.height = '15px'; }
+  }
+  
+  const val = p[activeAdj] || 0;
+  $('#adj-main-slider').value = val;
+  $('#adj-main-val').textContent = (val > 0 ? '+' : '') + val;
+}
 
 /* ---- text ---- */
 function buildTextControls(host){
@@ -1005,7 +1041,7 @@ async function generateExport(){
     let blob,name;
     if(expOpts.format==='pdf'){
       const doc=await PDFLib.PDFDocument.create();
-      doc.setTitle('Bindery document'); doc.setCreator('Bindery — local PDF studio');
+      doc.setTitle('Rkrid document'); doc.setCreator('Rkrid — local PDF studio');
       const baseW={standard:1240,high:1750,maximum:2400}[expOpts.pdfq], q={standard:.78,high:.88,maximum:.95}[expOpts.pdfq];
       for(let i=0;i<n;i++){
         setP(i/n*0.9,`Rendering page ${i+1} of ${n}…`); await tick();
@@ -1025,7 +1061,7 @@ async function generateExport(){
       }
       setP(0.94,'Generating PDF…');
       blob=new Blob([await doc.save()],{type:'application/pdf'});
-      name='bindery-document.pdf';
+      name='rkrid-document.pdf';
     } else {
       const zip=new JSZip(), w={low:1000,medium:1600,high:2200}[expOpts.zipq], q={low:.7,medium:.85,high:.92}[expOpts.zipq];
       for(let i=0;i<n;i++){
@@ -1035,7 +1071,7 @@ async function generateExport(){
       }
       setP(0.72,'Preparing ZIP…');
       blob=await zip.generateAsync({type:'blob'},m=>setP(0.72+m.percent/100*0.26));
-      name='bindery-pages.zip';
+      name='rkrid-pages.zip';
     }
     setP(1,'Done');
     lastExport={blob,name};
@@ -1068,7 +1104,7 @@ function loadSample(){
   const p1=sampleCanvas(W,H,(x,w,h)=>{ x.fillStyle='#171b26'; x.fillRect(0,0,w,h);
     x.fillStyle='#2743e3'; x.fillRect(110,150,180,14);
     x.fillStyle='#fff'; x.font='800 118px "Bricolage Grotesque", sans-serif';
-    x.fillText('The Bindery',110,420); x.fillText('Sample',110,545);
+    x.fillText('The Rkrid',110,420); x.fillText('Sample',110,545);
     x.font='500 34px "IBM Plex Mono", monospace'; x.fillStyle='#8ea0ff';
     x.fillText('IMPORT → ORGANIZE → EDIT → EXPORT',110,650);
     x.fillStyle='rgba(255,255,255,.14)'; for(let i=0;i<4;i++) x.fillRect(110,1350+i*66,760,3);
@@ -1102,6 +1138,18 @@ function loadSample(){
 
 /* ================= WIRING ================= */
 function wireStatic(){
+  /* theme toggle */
+  const savedTheme = localStorage.getItem('bindery-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  document.documentElement.setAttribute('data-theme', savedTheme);
+  const updateThemeIcon = (t) => { const btn = $('#btnThemeToggle'); if(btn) btn.innerHTML = t === 'dark' ? ic('sun') : ic('moon'); };
+  updateThemeIcon(savedTheme);
+  $('#btnThemeToggle')?.addEventListener('click', () => {
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const newTheme = isDark ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('bindery-theme', newTheme);
+    updateThemeIcon(newTheme);
+  });
   /* icons into buttons */
   $('#btnUndo').innerHTML=ic('undo'); $('#btnRedo').innerHTML=ic('redo');
   $('#edUndo').innerHTML=ic('undo'); $('#edRedo').innerHTML=ic('redo');
@@ -1109,7 +1157,7 @@ function wireStatic(){
   $('#zoomOut').innerHTML=ic('minus'); $('#zoomIn').innerHTML=ic('plus');
   $('#btnAdd').innerHTML=ic('plus')+'<span>Add</span>'; $('#btnExport').innerHTML=ic('download')+'<span>Export PDF</span>';
   $('#btnImportMain').innerHTML=ic('upload')+' Import Files'; $('#btnSample').innerHTML=ic('sparkle')+' Try a sample';
-  $('#privacyLine').innerHTML=ic('shield')+'<span><b>Your files are processed locally whenever possible.</b> Nothing is uploaded — Bindery runs entirely in your browser. *HEIC works where your browser supports it.</span>';
+  $('#privacyLine').innerHTML=ic('shield')+'<span><b>Your files are processed locally whenever possible.</b> Nothing is uploaded — Rkrid runs entirely in your browser. *HEIC works where your browser supports it.</span>';
   $('#mbPages').innerHTML=ic('pages')+'Pages'; $('#mbAdd').innerHTML=ic('plus')+'Add';
   $('#mbTools').innerHTML=ic('grid')+'Tools'; $('#mbAdjust').innerHTML=ic('sun')+'Adjust';
   $('#mbText').innerHTML=ic('type')+'Text'; $('#mbExport').innerHTML=ic('download')+'Export';
@@ -1127,12 +1175,12 @@ function wireStatic(){
   $$('#pickerModal .pcheck .box').forEach(b=>b.innerHTML=ic('check'));
   /* chips */
   const chips=[['crop','crop','Crop'],['bright','sun','Brightness'],['contrast','contrast','Contrast'],
-    ['dark','moon','Darkness'],['text','type','Text'],['erase','eraser','Erase'],['replace','replace','Replace']];
+    ['dark','moon','Darkness'],['hue','sparkle','Hue'],['text','type','Text'],['erase','eraser','Erase'],['replace','replace','Replace']];
   $('#edChips').innerHTML=chips.map(([t,icn,l])=>`<button class="chip" data-tool="${t}" data-chip>${ic(icn)}${l}</button>`).join('');
   $$('#edChips [data-chip]').forEach(c=>c.addEventListener('click',()=>{
     const t=c.dataset.tool;
     if(t==='replace'){ pageAction(state.editingId,'replace'); return; }
-    if(['bright','contrast','dark'].includes(t)){ openSheet({title:'Adjust page',body:$('#secAdjust')}); return; }
+    if(['bright','contrast','dark','hue'].includes(t)){ openSheet({title:'Adjust page',body:$('#secAdjust')}); return; }
     if(state.tool===t){ setTool(''); return; }
     setTool(t);
     if(isNarrow()) openSheet({title:t==='crop'?'Crop':t==='text'?'Add text':'Erase',
